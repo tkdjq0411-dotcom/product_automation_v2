@@ -1,25 +1,31 @@
-c// ==============================
+// ==============================
+// Supabase 전역 (중복 선언 방지)
+// ==============================
+if (!window._supabaseClient) {
+  window._supabaseClient = { client: null };
+}
+
+// ==============================
 // Supabase 초기화
 // ==============================
-let supabase;
-
 async function initSupabase() {
+  if (window._supabaseClient.client) return;
+
   const res = await fetch("/api/public-config");
   const cfg = await res.json();
 
-  supabase = window.supabase.createClient(
+  window._supabaseClient.client = window.supabase.createClient(
     cfg.supabaseUrl,
     cfg.supabaseAnonKey
   );
 }
 
 // ==============================
-// 공통 API fetch (토큰 자동 포함)
+// 공통 API fetch
 // ==============================
 async function apiFetch(url, options = {}) {
-  if (!supabase) {
-    await initSupabase();
-  }
+  await initSupabase();
+  const supabase = window._supabaseClient.client;
 
   const {
     data: { session }
@@ -29,23 +35,16 @@ async function apiFetch(url, options = {}) {
     throw new Error("로그인이 필요합니다");
   }
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-    "Authorization": `Bearer ${session.access_token}`
-  };
-
   const res = await fetch(url, {
     ...options,
-    headers
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session.access_token}`,
+      ...(options.headers || {})
+    }
   });
 
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error("서버 응답이 JSON이 아닙니다");
-  }
+  const data = await res.json();
 
   if (!res.ok) {
     throw new Error(data.detail || "요청 실패");
@@ -55,23 +54,21 @@ async function apiFetch(url, options = {}) {
 }
 
 // ==============================
-// ⭐ 개인 코드 검증 (중요)
+// ⭐ 개인 코드 검증 (전역 노출)
 // ==============================
-async function verifyCode(code) {
+window.verifyCode = async function (code) {
   return apiFetch("/api/verify-code", {
     method: "POST",
-    body: JSON.stringify({
-      code: code   // ❗❗ 반드시 code
-    })
+    body: JSON.stringify({ code })
   });
-}
+};
 
 // ==============================
 // 로그아웃
 // ==============================
-async function logout() {
-  if (!supabase) await initSupabase();
-  await supabase.auth.signOut();
+window.logout = async function () {
+  await initSupabase();
+  await window._supabaseClient.client.auth.signOut();
   location.href = "/login";
-}
+};
 
