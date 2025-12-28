@@ -1,46 +1,48 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>로그인</title>
+  <meta charset="utf-8">
+  <title>Login</title>
 </head>
 <body>
-  <h2>로그인</h2>
 
-  <input id="email" placeholder="이메일" /><br />
-  <input id="password" type="password" placeholder="비밀번호" /><br />
-  <button onclick="login()">로그인</button>
+<h2>로그인</h2>
 
-  <p id="error" style="color:red;"></p>
+<input id="email" placeholder="이메일"><br>
+<input id="password" type="password" placeholder="비밀번호"><br>
+<button onclick="login()">로그인</button>
 
-  <script>
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const error = document.getElementById("error");
-      error.textContent = "";
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/static/common.js"></script>
 
-      if (!email || !password) {
-        error.textContent = "이메일과 비밀번호를 입력하세요.";
-        return;
-      }
+<script>
+let sb;
 
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+async function login() {
+  if (!sb) {
+    const res = await fetch("/api/public-config");
+    const cfg = await res.json();
+    sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  }
 
-      const data = await res.json();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      if (!res.ok) {
-        error.textContent = data.detail || "로그인 실패";
-        return;
-      }
+  const { data, error } = await sb.auth.signInWithPassword({
+    email,
+    password
+  });
 
-      localStorage.setItem("access_token", data.access_token);
-      window.location.href = "/code";
-    }
-  </script>
+  if (error) {
+    alert("로그인 실패: " + error.message);
+    return;
+  }
+
+  // 로그인 성공 → 개인코드 페이지로 이동
+  location.href = "/code";
+}
+</script>
+
 </body>
 </html>
+
