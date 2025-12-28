@@ -48,7 +48,7 @@ async function apiFetch(url, options = {}) {
   try {
     data = await res.json();
   } catch (e) {
-    // JSON 아닌 응답 대비
+    // non-json 대응
   }
 
   if (!res.ok) {
@@ -59,7 +59,6 @@ async function apiFetch(url, options = {}) {
   return data;
 }
 
-// 전역 노출
 window.initSupabase = initSupabase;
 window.apiFetch = apiFetch;
 

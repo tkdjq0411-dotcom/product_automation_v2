@@ -6,59 +6,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body { font-family: Arial, sans-serif; padding: 24px; }
-    input, button { padding: 10px; margin: 4px 0; }
+    input, button, select { padding: 10px; margin: 4px 0; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .row input { flex: 1; min-width: 140px; }
+    .row input, .row select { flex: 1; min-width: 160px; }
     ul { padding-left: 18px; }
-    li { margin: 8px 0; }
+    li { margin: 10px 0; }
     .small { font-size: 12px; color: #666; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ccc; }
+    .pill.sell { border-color:#1b5; color:#1b5; }
+    .pill.stop { border-color:#d33; color:#d33; }
+    .card { border:1px solid #ddd; padding:12px; border-radius:10px; margin:12px 0; }
+    .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+    .btns { margin-top: 6px; display:flex; gap:6px; flex-wrap:wrap; }
   </style>
 </head>
 <body>
   <h2>상품 관리 (USER)</h2>
-  <p class="small">본인 상품만 조회/수정/삭제 가능합니다.</p>
+  <p class="small">본인 상품만 조회/수정/삭제 가능합니다. (SELL 기준: 순이익 ≥ 500원)</p>
 
-  <div class="row">
-    <input id="title" placeholder="상품명" />
-    <input id="price" type="number" placeholder="가격" />
-    <button onclick="addItem()">상품 추가</button>
+  <div class="card">
+    <h3>상품 추가</h3>
+    <div class="grid">
+      <input id="url" placeholder="상품 URL (선택)" />
+      <input id="title" placeholder="상품명 (선택)" />
+      <input id="market" placeholder="마켓 (예: 쿠팡/스스토/11번가)" />
+      <input id="category" placeholder="카테고리 (예: 전자/생활 등)" />
+      <input id="cost_price" type="number" placeholder="매입가" />
+      <input id="sell_price" type="number" placeholder="판매가 (필수)" />
+      <input id="shipping_fee" type="number" placeholder="배송비(판매자 부담)" />
+      <input id="commission_rate" type="number" step="0.001" placeholder="수수료율 (예: 0.108)" />
+      <select id="vat_type">
+        <option value="simple">간이과세(추정)</option>
+        <option value="normal">일반과세(추정)</option>
+      </select>
+      <button onclick="addItem()">저장</button>
+    </div>
+
+    <div class="btns">
+      <button onclick="downloadAll()">전체 엑셀 다운로드</button>
+      <button onclick="downloadSell()">SELL 상품만 다운로드</button>
+    </div>
   </div>
 
-  <hr />
+  <div class="card">
+    <div class="btns">
+      <button onclick="loadItems()">상품 조회/새로고침</button>
+      <button onclick="logout()">로그아웃</button>
+    </div>
+    <ul id="itemList"></ul>
+  </div>
 
-  <button onclick="loadItems()">상품 조회</button>
-  <ul id="itemList"></ul>
-
-  <hr />
-  <button onclick="logout()">로그아웃</button>
-
-  <!-- supabase-js 필수 -->
+  <!-- supabase-js -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/static/common.js"></script>
 
   <script>
     function esc(s) {
-      return String(s).replace(/[&<>"']/g, m => ({
+      return String(s ?? "").replace(/[&<>"']/g, m => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
       }[m]));
     }
+    function fmt(n) {
+      const v = Number(n);
+      if (Number.isNaN(v)) return "0";
+      return v.toLocaleString();
+    }
+
+    function downloadAll() {
+      window.location.href = "/api/items/export?mode=all";
+    }
+    function downloadSell() {
+      window.location.href = "/api/items/export?mode=sell";
+    }
 
     async function addItem() {
-      const title = document.getElementById("title").value.trim();
-      const price = Number(document.getElementById("price").value);
+      const payload = {
+        url: url.value.trim(),
+        title: title.value.trim(),
+        market: market.value.trim(),
+        category: category.value.trim(),
+        cost_price: Number(cost_price.value || 0),
+        sell_price: Number(sell_price.value || 0),
+        shipping_fee: Number(shipping_fee.value || 0),
+        commission_rate: commission_rate.value === "" ? 0 : Number(commission_rate.value),
+        vat_type: vat_type.value
+      };
 
-      if (!title || !price) {
-        alert("상품명/가격을 입력하세요.");
+      if (!payload.sell_price || payload.sell_price <= 0) {
+        alert("판매가(sell_price)는 필수입니다.");
         return;
       }
 
       await apiFetch("/api/items", {
         method: "POST",
-        body: JSON.stringify({ title, price })
+        body: JSON.stringify(payload)
       });
 
-      document.getElementById("title").value = "";
-      document.getElementById("price").value = "";
+      // reset
+      url.value = "";
+      title.value = "";
+      market.value = "";
+      category.value = "";
+      cost_price.value = "";
+      sell_price.value = "";
+      shipping_fee.value = "";
+      commission_rate.value = "";
+      vat_type.value = "simple";
+
       loadItems();
     }
 
@@ -68,35 +123,63 @@
       list.innerHTML = "";
 
       items.forEach((item) => {
+        const pillClass = (item.signal === "SELL") ? "sell" : "stop";
         const li = document.createElement("li");
+
         li.innerHTML = `
-          <b>${esc(item.title)}</b> - ${esc(item.price)}원
-          <div style="margin-top:6px;">
-            <button onclick="editItem(${item.id}, '${esc(item.title)}', ${item.price})">수정</button>
-            <button onclick="deleteItem(${item.id})">삭제</button>
+          <div>
+            <b>${esc(item.title || "(제목없음)")}</b>
+            <span class="pill ${pillClass}">${esc(item.signal || "")}</span>
+            <div class="small">
+              판매가: ${fmt(item.sell_price)} / 매입가: ${fmt(item.cost_price)} / 배송비: ${fmt(item.shipping_fee)}
+              <br/>
+              수수료(${esc(item.commission_rate)}): ${fmt(item.commission_fee)} /
+              VAT(${esc(item.vat_type)}): ${fmt(item.vat_amount)}
+              <br/>
+              순이익: <b>${fmt(item.net_profit)}</b> /
+              마진율: <b>${Number(item.margin_rate || 0).toFixed(2)}%</b>
+            </div>
+            ${item.url ? `<div class="small">URL: ${esc(item.url)}</div>` : ""}
+            <div class="small">마켓: ${esc(item.market || "-")} / 카테고리: ${esc(item.category || "-")}</div>
+
+            <div class="btns">
+              <button onclick="editItem(${item.id})">수정</button>
+              <button onclick="deleteItem(${item.id})">삭제</button>
+            </div>
           </div>
         `;
         list.appendChild(li);
       });
     }
 
-    async function editItem(id, currentTitle, currentPrice) {
-      const title = prompt("상품명 수정", currentTitle);
-      if (title === null) return;
+    async function editItem(id) {
+      // 간단 프롬프트 수정 (전체 UI 편집은 다음 단계에서 개선 가능)
+      const sell = prompt("판매가(sell_price)", "");
+      if (sell === null) return;
 
-      const priceStr = prompt("가격 수정", String(currentPrice));
-      if (priceStr === null) return;
+      const cost = prompt("매입가(cost_price)", "");
+      if (cost === null) return;
 
-      const price = Number(priceStr);
-      if (!title.trim() || !price) {
-        alert("유효한 값이 아닙니다.");
-        return;
-      }
+      const ship = prompt("배송비(shipping_fee)", "");
+      if (ship === null) return;
+
+      const cr = prompt("수수료율(commission_rate) 예: 0.108", "");
+      if (cr === null) return;
+
+      const vt = prompt("vat_type: simple 또는 normal", "simple");
+      if (vt === null) return;
 
       await apiFetch(`/api/items/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ title: title.trim(), price })
+        body: JSON.stringify({
+          sell_price: Number(sell || 0),
+          cost_price: Number(cost || 0),
+          shipping_fee: Number(ship || 0),
+          commission_rate: Number(cr || 0),
+          vat_type: (vt || "simple").trim()
+        })
       });
+
       loadItems();
     }
 
