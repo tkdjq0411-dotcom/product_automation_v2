@@ -1,48 +1,37 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>개인 코드 인증</title>
-</head>
-<body>
-  <h2>개인 코드 입력</h2>
+<script>
+async function verifyCode() {
+  const code = document.getElementById("codeInput").value.trim();
+  const error = document.getElementById("error");
+  error.textContent = "";
 
-  <input id="codeInput" placeholder="개인 코드" />
-  <button onclick="verifyCode()">확인</button>
+  if (!code) {
+    error.textContent = "개인 코드를 입력하세요.";
+    return;
+  }
 
-  <p id="error" style="color:red;"></p>
+  const res = await apiFetch("/api/verify-code", {
+    method: "POST",
+    body: JSON.stringify({ access_code: code })
+  });
 
-  <script src="/static/common.js"></script>
-  <script>
-    async function verifyCode() {
-      const code = document.getElementById("codeInput").value.trim();
-      const error = document.getElementById("error");
-      error.textContent = "";
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    error.textContent = "서버 오류 (500)";
+    return;
+  }
 
-      if (!code) {
-        error.textContent = "개인 코드를 입력하세요.";
-        return;
-      }
+  if (!res.ok) {
+    error.textContent = data.detail || "인증 실패";
+    return;
+  }
 
-      const res = await apiFetch("/api/verify-code", {
-        method: "POST",
-        body: JSON.stringify({ access_code: code }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        error.textContent = data.detail || "인증 실패";
-        return;
-      }
-
-      if (data.role === "admin") {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = "/user";
-      }
-    }
-  </script>
-</body>
-</html>
+  if (data.role === "admin") {
+    window.location.href = "/admin";
+  } else {
+    window.location.href = "/user";
+  }
+}
+</script>
 
