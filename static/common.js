@@ -1,26 +1,84 @@
-// static/common.js
+// ===============================
+// Token utils
+// ===============================
+function getAccessToken() {
+  return localStorage.getItem("access_token");
+}
 
-function showToast(message, type = "error") {
-  const toast = document.createElement("div")
-  toast.innerText = message
+function setAccessToken(token) {
+  localStorage.setItem("access_token", token);
+}
 
-  toast.style.position = "fixed"
-  toast.style.bottom = "20px"
-  toast.style.left = "50%"
-  toast.style.transform = "translateX(-50%)"
-  toast.style.padding = "12px 20px"
-  toast.style.borderRadius = "6px"
-  toast.style.color = "#fff"
-  toast.style.zIndex = "9999"
-  toast.style.fontSize = "14px"
-  toast.style.boxShadow = "0 2px 10px rgba(0,0,0,0.2)"
+function clearAuth() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("verified");
+  window.location.href = "/login";
+}
 
-  toast.style.background =
-    type === "error" ? "#e74c3c" : "#2ecc71"
+// ===============================
+// apiFetch (모든 인증 요청은 이걸로)
+// ===============================
+async function apiFetch(url, options = {}) {
+  const token = getAccessToken();
 
-  document.body.appendChild(toast)
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
 
-  setTimeout(() => {
-    toast.remove()
-  }, 2500)
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  // 토큰 만료 / 인증 실패 공통 처리
+  if (res.status === 401) {
+    clearAuth();
+    throw new Error("Unauthorized");
+  }
+
+  return res;
+}
+
+// ===============================
+// Login handler
+// ===============================
+async function login(email, password) {
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.detail || "로그인 실패");
+  }
+
+  setAccessToken(data.access_token);
+
+  // 개인 코드 인증 단계로 이동
+  window.location.href = "/code";
+}
+
+// ===============================
+// Logout
+// ===============================
+function logout() {
+  clearAuth();
+}
+
+// ===============================
+// Page guards
+// ===============================
+async function requireAuth() {
+  const token = getAccessToken();
+  if (!token) {
+    clearAuth();
+  }
 }

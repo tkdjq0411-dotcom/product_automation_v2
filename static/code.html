@@ -1,56 +1,91 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>개인 코드</title>
+  <meta charset="UTF-8" />
+  <title>개인 코드 인증</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/static/common.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      max-width: 400px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+      margin-top: 12px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-  <h2>개인 코드 입력</h2>
 
-  <input id="code" placeholder="WJSCPZHEM"><br><br>
-  <button onclick="verify()">확인</button>
+  <h2>개인 코드 인증</h2>
 
-  <p id="msg"></p>
+  <input
+    type="password"
+    id="codeInput"
+    placeholder="개인 코드를 입력하세요"
+  />
 
-  <!-- ⭐ 공통 토스트 JS -->
-  <script src="/static/common.js"></script>
+  <button onclick="verifyCode()">확인</button>
+
+  <div id="error" class="error"></div>
 
   <script>
-    async function verify() {
-      const userId = localStorage.getItem("user_id")
+    async function verifyCode() {
+      const code = document.getElementById("codeInput").value.trim();
+      const errorDiv = document.getElementById("error");
+      errorDiv.textContent = "";
 
-      if (!userId) {
-        showToast("로그인이 필요합니다.")
-        return
+      if (!code) {
+        errorDiv.textContent = "개인 코드를 입력하세요.";
+        return;
       }
 
-      const res = await fetch("/api/verify-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          code: document.getElementById("code").value
-        })
-      })
+      try {
+        // 🔴 핵심 수정 포인트
+        // fetch ❌ → apiFetch ✅ (Authorization 자동 포함)
+        const res = await apiFetch("/api/verify-code", {
+          method: "POST",
+          body: JSON.stringify({ code }),
+        });
 
-      const data = await res.json()
+        if (res.ok) {
+          const data = await res.json();
 
-      if (!res.ok) {
-        showToast(data.detail || "코드 확인 실패")
-        return
-      }
-
-      // ✅ 역할에 따라 페이지 분기
-      showToast("인증 성공", "success")
-
-      setTimeout(() => {
-        if (data.role === "admin") {
-          location.href = "/admin"
+          if (data.role === "admin") {
+            window.location.href = "/admin";
+          } else {
+            window.location.href = "/user";
+          }
         } else {
-          location.href = "/user"
+          const err = await res.json();
+          errorDiv.textContent = err.detail || "개인 코드 인증 실패";
         }
-      }, 500)
+      } catch (e) {
+        errorDiv.textContent = "서버 통신 오류";
+        console.error(e);
+      }
     }
   </script>
+
 </body>
 </html>
