@@ -1,29 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <title>개인 코드</title>
+  <meta charset="UTF-8" />
+  <title>개인 코드 인증</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
-<h2>개인 코드 입력</h2>
-<input id="code" placeholder="개인 코드">
-<button onclick="verify()">확인</button>
+  <div class="box">
+    <h2>개인 코드 입력</h2>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="/static/common.js"></script>
-<script>
-initSupabase();
+    <input
+      id="codeInput"
+      type="text"
+      placeholder="개인 코드를 입력하세요"
+    />
 
-async function verify() {
-  const code = document.getElementById("code").value;
-  const res = await apiFetch("/api/verify-code", {
-    method: "POST",
-    body: JSON.stringify({ access_code: code })
-  });
+    <button id="verifyBtn">확인</button>
+  </div>
 
-  if (res.role === "admin") location.href = "/admin";
-  else location.href = "/user";
-}
-</script>
+  <!-- ✅ 반드시 이 순서 -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/static/common.js"></script>
+
+  <script>
+    const btn = document.getElementById("verifyBtn");
+
+    btn.onclick = async () => {
+      const code = document.getElementById("codeInput").value.trim();
+
+      if (!code) {
+        alert("개인 코드를 입력하세요");
+        return;
+      }
+
+      try {
+        const result = await verifyCode(code);
+
+        if (result.role === "admin") {
+          location.href = "/admin";
+        } else {
+          location.href = "/user";
+        }
+      } catch (e) {
+        alert("❌ 개인 코드 오류");
+        console.error(e);
+      }
+    };
+  </script>
 </body>
 </html>
+
