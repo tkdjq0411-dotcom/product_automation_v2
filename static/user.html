@@ -2,15 +2,71 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>사용자 페이지</title>
+  <title>사용자 상품 관리</title>
 </head>
 <body>
-  <h2>사용자 페이지</h2>
-  <p>정상적으로 로그인되었습니다.</p>
+  <h2>상품 관리</h2>
 
+  <!-- 상품 추가 -->
+  <div>
+    <input id="title" placeholder="상품 이름" />
+    <input id="price" type="number" placeholder="가격" />
+    <button onclick="addItem()">상품 추가</button>
+  </div>
+
+  <hr />
+
+  <!-- 상품 조회 -->
+  <button onclick="loadItems()">상품 조회</button>
+
+  <ul id="itemList"></ul>
+
+  <br />
   <button onclick="logout()">로그아웃</button>
 
   <script src="/static/common.js"></script>
+  <script>
+    async function addItem() {
+      const title = document.getElementById("title").value.trim();
+      const price = Number(document.getElementById("price").value);
+
+      if (!title || !price) {
+        alert("상품 이름과 가격을 입력하세요.");
+        return;
+      }
+
+      const res = await apiFetch("/api/user/items", {
+        method: "POST",
+        body: JSON.stringify({ title, price }),
+      });
+
+      if (!res.ok) {
+        alert("상품 추가 실패");
+        return;
+      }
+
+      document.getElementById("title").value = "";
+      document.getElementById("price").value = "";
+
+      loadItems();
+    }
+
+    async function loadItems() {
+      const res = await apiFetch("/api/user/items");
+      const items = await res.json();
+
+      const list = document.getElementById("itemList");
+      list.innerHTML = "";
+
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = `${item.title} - ${item.price}원`;
+        list.appendChild(li);
+      });
+    }
+
+    // 페이지 로드 시 자동 조회
+    loadItems();
+  </script>
 </body>
 </html>
-
