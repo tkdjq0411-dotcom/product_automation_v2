@@ -7,37 +7,22 @@
 
   <style>
     body {
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: Arial, sans-serif;
       background: #f5f5f5;
       padding: 40px;
     }
-
     .box {
       max-width: 400px;
-      margin: 0 auto;
-      background: #fff;
+      margin: auto;
+      background: white;
       padding: 30px;
       border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
-    h2 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-bottom: 15px;
-    }
-
-    button {
+    input, button {
       width: 100%;
       padding: 12px;
       font-size: 16px;
-      cursor: pointer;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -46,23 +31,16 @@
   <div class="box">
     <h2>개인 코드 입력</h2>
 
-    <input
-      id="codeInput"
-      type="text"
-      placeholder="개인 코드를 입력하세요"
-    />
-
+    <input id="codeInput" placeholder="개인 코드 입력" />
     <button id="verifyBtn">확인</button>
   </div>
 
-  <!-- ✅ 반드시 이 순서 -->
+  <!-- ⚠️ 순서 중요 -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/static/common.js"></script>
 
   <script>
-    const btn = document.getElementById("verifyBtn");
-
-    btn.onclick = async () => {
+    document.getElementById("verifyBtn").onclick = async () => {
       const code = document.getElementById("codeInput").value.trim();
 
       if (!code) {
@@ -71,15 +49,15 @@
       }
 
       try {
-        const result = await verifyCode(code);
+        const res = await verifyCode(code);
 
-        if (result.role === "admin") {
+        if (res.role === "admin") {
           location.href = "/admin";
         } else {
           location.href = "/user";
         }
       } catch (e) {
-        alert("❌ 개인 코드 오류");
+        alert(e.message || "개인 코드 오류");
         console.error(e);
       }
     };

@@ -1,70 +1,77 @@
-console.log("✅ common.js LOADED");
-
-/* =========================
-   Supabase 초기화 (단 1번)
-========================= */
-let supabaseClient = null;
+c// ==============================
+// Supabase 초기화
+// ==============================
+let supabase;
 
 async function initSupabase() {
-  if (supabaseClient) return supabaseClient;
-
   const res = await fetch("/api/public-config");
   const cfg = await res.json();
 
-  supabaseClient = window.supabase.createClient(
+  supabase = window.supabase.createClient(
     cfg.supabaseUrl,
     cfg.supabaseAnonKey
   );
-
-  return supabaseClient;
 }
 
-/* =========================
-   공통 API Fetch (토큰 포함)
-========================= */
+// ==============================
+// 공통 API fetch (토큰 자동 포함)
+// ==============================
 async function apiFetch(url, options = {}) {
-  const token = localStorage.getItem("access_token");
+  if (!supabase) {
+    await initSupabase();
+  }
+
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("로그인이 필요합니다");
+  }
 
   const headers = {
     "Content-Type": "application/json",
-    ...(options.headers || {})
+    ...(options.headers || {}),
+    "Authorization": `Bearer ${session.access_token}`
   };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const res = await fetch(url, {
     ...options,
     headers
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || res.status);
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("서버 응답이 JSON이 아닙니다");
   }
 
-  return res.json();
+  if (!res.ok) {
+    throw new Error(data.detail || "요청 실패");
+  }
+
+  return data;
 }
 
-/* =========================
-   개인 코드 검증
-========================= */
+// ==============================
+// ⭐ 개인 코드 검증 (중요)
+// ==============================
 async function verifyCode(code) {
-  if (!code) throw new Error("코드 없음");
-
   return apiFetch("/api/verify-code", {
     method: "POST",
     body: JSON.stringify({
-      code: code   // ✅ 서버와 일치
+      code: code   // ❗❗ 반드시 code
     })
   });
 }
 
-/* =========================
-   로그아웃
-========================= */
-function logout() {
-  localStorage.clear();
+// ==============================
+// 로그아웃
+// ==============================
+async function logout() {
+  if (!supabase) await initSupabase();
+  await supabase.auth.signOut();
   location.href = "/login";
 }
+
