@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>관리자 페이지</title>
+</head>
+<body>
+  <h1>관리자 - 개인 코드 발급</h1>
+
+  <!-- 개인 코드 발급 -->
+  <input id="newCode" placeholder="새 개인 코드" />
+  <button onclick="createCode()">발급</button>
+  <p id="codeMsg"></p>
+
+  <hr />
+
+  <!-- 상품 추가 -->
+  <h2>상품 추가</h2>
+  <input id="itemTitle" placeholder="상품명" />
+  <input id="itemPrice" type="number" placeholder="가격" />
+  <button onclick="addItem()">추가</button>
+  <p id="itemMsg"></p>
+
+  <hr />
+
+  <!-- 내 상품 조회 -->
+  <h2>내 상품 목록</h2>
+  <button onclick="loadItems()">조회</button>
+  <ul id="itemList"></ul>
+
+  <script>
+    const userId = localStorage.getItem("user_id");
+
+    if (!userId) {
+      alert("로그인 정보 없음. 다시 로그인하세요.");
+      location.href = "/";
+    }
+
+    // 개인 코드 발급
+    async function createCode() {
+      const code = document.getElementById("newCode").value;
+      const msg = document.getElementById("codeMsg");
+
+      const res = await fetch("/api/admin/create-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          code: code,
+          role: "admin"
+        })
+      });
+
+      const data = await res.json();
+      msg.innerText = data.success ? "✅ 코드 발급 완료" : "❌ 실패";
+    }
+
+    // 상품 추가
+    async function addItem() {
+      const title = document.getElementById("itemTitle").value;
+      const price = document.getElementById("itemPrice").value;
+      const msg = document.getElementById("itemMsg");
+
+      const res = await fetch("/api/user/add-item", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": userId
+        },
+        body: JSON.stringify({ title, price })
+      });
+
+      if (!res.ok) {
+        msg.innerText = "❌ 상품 추가 실패";
+        return;
+      }
+
+      msg.innerText = "✅ 상품 추가 완료";
+      loadItems();
+    }
+
+    // 내 상품 조회
+    async function loadItems() {
+      const list = document.getElementById("itemList");
+      list.innerHTML = "";
+
+      const res = await fetch("/api/user/items", {
+        headers: {
+          "x-user-id": userId
+        }
+      });
+
+      const items = await res.json();
+
+      items.forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = `${item.title} - ${item.price}원`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>

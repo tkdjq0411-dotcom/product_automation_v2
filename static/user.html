@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>User</title>
+</head>
+<body>
+  <h1>내 상품</h1>
+
+  <form id="form">
+    <input id="title" placeholder="상품명">
+    <input id="price" type="number" placeholder="가격">
+    <button>추가</button>
+  </form>
+
+  <ul id="list"></ul>
+
+  <script>
+    const userId = localStorage.getItem("user_id")
+
+    async function load() {
+      const res = await fetch("/api/user/items", {
+        headers: { "X-User-Id": userId }
+      })
+      const items = await res.json()
+      list.innerHTML = items.map(i => `<li>${i.title} - ${i.price}</li>`).join("")
+    }
+
+    form.onsubmit = async e => {
+      e.preventDefault()
+      await fetch("/api/user/add-item", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-Id": userId
+        },
+        body: JSON.stringify({
+          title: title.value,
+          price: price.value
+        })
+      })
+      load()
+    }
+
+    load()
+  </script>
+</body>
+</html>

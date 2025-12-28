@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>개인 코드</title>
+</head>
+<body>
+  <h2>개인 코드 입력</h2>
+
+  <input id="code" placeholder="WJSCPZHEM"><br><br>
+  <button onclick="verify()">확인</button>
+
+  <p id="msg"></p>
+
+  <!-- ⭐ 공통 토스트 JS -->
+  <script src="/static/common.js"></script>
+
+  <script>
+    async function verify() {
+      const userId = localStorage.getItem("user_id")
+
+      if (!userId) {
+        showToast("로그인이 필요합니다.")
+        return
+      }
+
+      const res = await fetch("/api/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          code: document.getElementById("code").value
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        showToast(data.detail || "코드 확인 실패")
+        return
+      }
+
+      // ✅ 역할에 따라 페이지 분기
+      showToast("인증 성공", "success")
+
+      setTimeout(() => {
+        if (data.role === "admin") {
+          location.href = "/admin"
+        } else {
+          location.href = "/user"
+        }
+      }, 500)
+    }
+  </script>
+</body>
+</html>
