@@ -3,69 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <title>사용자 상품 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    input, button { padding: 10px; margin: 4px 0; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .row input { flex: 1; min-width: 140px; }
+    ul { padding-left: 18px; }
+    li { margin: 8px 0; }
+    .small { font-size: 12px; color: #666; }
+  </style>
 </head>
 <body>
-  <h2>상품 관리</h2>
+  <h2>상품 관리 (USER)</h2>
+  <p class="small">본인 상품만 조회/수정/삭제 가능합니다.</p>
 
-  <!-- 상품 추가 -->
-  <div>
-    <input id="title" placeholder="상품 이름" />
+  <div class="row">
+    <input id="title" placeholder="상품명" />
     <input id="price" type="number" placeholder="가격" />
     <button onclick="addItem()">상품 추가</button>
   </div>
 
   <hr />
 
-  <!-- 상품 조회 -->
   <button onclick="loadItems()">상품 조회</button>
-
   <ul id="itemList"></ul>
 
-  <br />
+  <hr />
   <button onclick="logout()">로그아웃</button>
 
+  <!-- supabase-js 필수 -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/static/common.js"></script>
+
   <script>
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
+    }
+
     async function addItem() {
       const title = document.getElementById("title").value.trim();
       const price = Number(document.getElementById("price").value);
 
       if (!title || !price) {
-        alert("상품 이름과 가격을 입력하세요.");
+        alert("상품명/가격을 입력하세요.");
         return;
       }
 
-      const res = await apiFetch("/api/user/items", {
+      await apiFetch("/api/items", {
         method: "POST",
-        body: JSON.stringify({ title, price }),
+        body: JSON.stringify({ title, price })
       });
-
-      if (!res.ok) {
-        alert("상품 추가 실패");
-        return;
-      }
 
       document.getElementById("title").value = "";
       document.getElementById("price").value = "";
-
       loadItems();
     }
 
     async function loadItems() {
-      const res = await apiFetch("/api/user/items");
-      const items = await res.json();
-
+      const items = await apiFetch("/api/items");
       const list = document.getElementById("itemList");
       list.innerHTML = "";
 
       items.forEach((item) => {
         const li = document.createElement("li");
-        li.textContent = `${item.title} - ${item.price}원`;
+        li.innerHTML = `
+          <b>${esc(item.title)}</b> - ${esc(item.price)}원
+          <div style="margin-top:6px;">
+            <button onclick="editItem(${item.id}, '${esc(item.title)}', ${item.price})">수정</button>
+            <button onclick="deleteItem(${item.id})">삭제</button>
+          </div>
+        `;
         list.appendChild(li);
       });
     }
 
-    // 페이지 로드 시 자동 조회
+    async function editItem(id, currentTitle, currentPrice) {
+      const title = prompt("상품명 수정", currentTitle);
+      if (title === null) return;
+
+      const priceStr = prompt("가격 수정", String(currentPrice));
+      if (priceStr === null) return;
+
+      const price = Number(priceStr);
+      if (!title.trim() || !price) {
+        alert("유효한 값이 아닙니다.");
+        return;
+      }
+
+      await apiFetch(`/api/items/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ title: title.trim(), price })
+      });
+      loadItems();
+    }
+
+    async function deleteItem(id) {
+      if (!confirm("삭제할까요?")) return;
+      await apiFetch(`/api/items/${id}`, { method: "DELETE" });
+      loadItems();
+    }
+
     loadItems();
   </script>
 </body>

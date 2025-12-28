@@ -1,35 +1,147 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>관리자</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    input, button, select { padding: 10px; margin: 4px 0; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .row input, .row select { flex: 1; min-width: 160px; }
+    ul { padding-left: 18px; }
+    li { margin: 8px 0; }
+    .card { border: 1px solid #ddd; padding: 12px; border-radius: 8px; margin: 12px 0; }
+    .small { font-size: 12px; color: #666; }
+  </style>
+</head>
 <body>
-<h2>관리자 - 개인 코드 발급</h2>
+  <h2>관리자 (ADMIN)</h2>
+  <p class="small">관리자는 상품 전체 조회/수정/삭제 가능 + 개인코드 발급 가능</p>
 
-<input id="uid" placeholder="user_id">
-<input id="code" placeholder="개인 코드">
-<select id="role">
-  <option value="user">user</option>
-  <option value="admin">admin</option>
-</select>
+  <div class="card">
+    <h3>개인 코드 발급</h3>
+    <div class="row">
+      <input id="uid" placeholder="user_id" />
+      <input id="code" placeholder="개인 코드(원문)" />
+      <select id="role">
+        <option value="user">user</option>
+        <option value="admin">admin</option>
+      </select>
+      <button onclick="createCode()">발급</button>
+    </div>
+  </div>
 
-<button onclick="createCode()">발급</button>
-<button onclick="logout()">로그아웃</button>
+  <div class="card">
+    <h3>상품 관리</h3>
+    <div class="row">
+      <input id="title" placeholder="상품명" />
+      <input id="price" type="number" placeholder="가격" />
+      <button onclick="addItem()">상품 추가</button>
+    </div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="/static/common.js"></script>
-<script>
-initSupabase();
+    <hr />
 
-async function createCode() {
-  await apiFetch("/api/admin/create-code", {
-    method: "POST",
-    body: JSON.stringify({
-      user_id: uid.value,
-      code: code.value,
-      role: role.value
-    })
-  });
-  alert("발급 완료");
-}
-</script>
+    <button onclick="loadItems()">상품 조회</button>
+    <ul id="itemList"></ul>
+  </div>
+
+  <button onclick="logout()">로그아웃</button>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/static/common.js"></script>
+
+  <script>
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[m]));
+    }
+
+    async function createCode() {
+      const user_id = document.getElementById("uid").value.trim();
+      const code = document.getElementById("code").value.trim();
+      const role = document.getElementById("role").value;
+
+      if (!user_id || !code) {
+        alert("user_id와 개인 코드를 입력하세요.");
+        return;
+      }
+
+      await apiFetch("/api/admin/create-code", {
+        method: "POST",
+        body: JSON.stringify({ user_id, code, role })
+      });
+
+      alert("발급 완료");
+      document.getElementById("code").value = "";
+    }
+
+    async function addItem() {
+      const title = document.getElementById("title").value.trim();
+      const price = Number(document.getElementById("price").value);
+
+      if (!title || !price) {
+        alert("상품명/가격을 입력하세요.");
+        return;
+      }
+
+      await apiFetch("/api/items", {
+        method: "POST",
+        body: JSON.stringify({ title, price })
+      });
+
+      document.getElementById("title").value = "";
+      document.getElementById("price").value = "";
+      loadItems();
+    }
+
+    async function loadItems() {
+      const items = await apiFetch("/api/items");
+      const list = document.getElementById("itemList");
+      list.innerHTML = "";
+
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <b>${esc(item.title)}</b> - ${esc(item.price)}원
+          <span class="small">(user_id: ${esc(item.user_id)})</span>
+          <div style="margin-top:6px;">
+            <button onclick="editItem(${item.id}, '${esc(item.title)}', ${item.price})">수정</button>
+            <button onclick="deleteItem(${item.id})">삭제</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function editItem(id, currentTitle, currentPrice) {
+      const title = prompt("상품명 수정", currentTitle);
+      if (title === null) return;
+
+      const priceStr = prompt("가격 수정", String(currentPrice));
+      if (priceStr === null) return;
+
+      const price = Number(priceStr);
+      if (!title.trim() || !price) {
+        alert("유효한 값이 아닙니다.");
+        return;
+      }
+
+      await apiFetch(`/api/items/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ title: title.trim(), price })
+      });
+      loadItems();
+    }
+
+    async function deleteItem(id) {
+      if (!confirm("삭제할까요?")) return;
+      await apiFetch(`/api/items/${id}`, { method: "DELETE" });
+      loadItems();
+    }
+
+    loadItems();
+  </script>
 </body>
 </html>

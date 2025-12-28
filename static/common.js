@@ -21,14 +21,14 @@ async function initSupabase() {
 }
 
 // ==============================
-// 공통 API fetch
+// 공통 API fetch (JSON 반환)
 // ==============================
 async function apiFetch(url, options = {}) {
   await initSupabase();
   const supabase = window._supabaseClient.client;
 
   const {
-    data: { session }
+    data: { session },
   } = await supabase.auth.getSession();
 
   if (!session) {
@@ -39,27 +39,37 @@ async function apiFetch(url, options = {}) {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${session.access_token}`,
-      ...(options.headers || {})
-    }
+      Authorization: `Bearer ${session.access_token}`,
+      ...(options.headers || {}),
+    },
   });
 
-  const data = await res.json();
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (e) {
+    // JSON 아닌 응답 대비
+  }
 
   if (!res.ok) {
-    throw new Error(data.detail || "요청 실패");
+    const msg = (data && (data.detail || data.message)) || "요청 실패";
+    throw new Error(msg);
   }
 
   return data;
 }
 
+// 전역 노출
+window.initSupabase = initSupabase;
+window.apiFetch = apiFetch;
+
 // ==============================
-// ⭐ 개인 코드 검증 (전역 노출)
+// 개인 코드 검증
 // ==============================
 window.verifyCode = async function (code) {
   return apiFetch("/api/verify-code", {
     method: "POST",
-    body: JSON.stringify({ code })
+    body: JSON.stringify({ code }),
   });
 };
 
@@ -71,4 +81,3 @@ window.logout = async function () {
   await window._supabaseClient.client.auth.signOut();
   location.href = "/login";
 };
-

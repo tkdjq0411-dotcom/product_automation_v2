@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Request, Depends, status
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from supabase import create_client
@@ -42,6 +42,7 @@ def get_bearer_token(request: Request) -> str:
 
 async def require_user(request: Request):
     token = get_bearer_token(request)
+
     try:
         user = supabase.auth.get_user(token).user
     except Exception:
@@ -105,7 +106,7 @@ def public_config():
     }
 
 # ======================
-# ✅ 개인 코드 검증 (최종 안정판)
+# 개인 코드 검증
 # ======================
 @app.post("/api/verify-code")
 async def verify_code(request: Request):
@@ -143,17 +144,14 @@ async def verify_code(request: Request):
     if res.data["access_code_hash"] != code_hash:
         raise HTTPException(401, "개인 코드 불일치")
 
-    return {
-        "success": True,
-        "role": res.data["role"]
-    }
+    return {"success": True, "role": res.data["role"]}
 
 # ======================
 # 관리자: 개인 코드 발급
 # ======================
 @app.post("/api/admin/create-code")
 async def create_code(request: Request, _=Depends(require_admin)):
-    token, admin_user, _ = await require_user(request)
+    token, admin_user, _role = await require_user(request)
 
     payload = await request.json()
     user_id = payload.get("user_id")
@@ -175,11 +173,26 @@ async def create_code(request: Request, _=Depends(require_admin)):
     return {"success": True}
 
 # ======================
-# 사용자 상품 CRUD
+# ✅ 공통 상품 CRUD (관리자/유저 공용)
+# - admin: 전체 상품 조회/수정/삭제 가능
+# - user : 본인 상품만 가능
 # ======================
-@app.post("/api/user/items")
-async def add_item(request: Request):
-    token, user, _ = await require_user(request)
+
+@app.get("/api/items")
+async def list_items(request: Request):
+    token, user, role = await require_user(request)
+    client = db_for_token(token)
+
+    q = client.table("user_items").select("*").order("created_at", desc=True)
+    if role != "admin":
+        q = q.eq("user_id", user.id)
+
+    res = q.execute()
+    return res.data
+
+@app.post("/api/items")
+async def create_item(request: Request):
+    token, user, role = await require_user(request)
     payload = await request.json()
 
     title = (payload.get("title") or "").strip()
@@ -197,16 +210,61 @@ async def add_item(request: Request):
 
     return res.data
 
-@app.get("/api/user/items")
-async def get_items(request: Request):
-    token, user, _ = await require_user(request)
+def _ensure_item_owner_or_admin(client, item_id: int, user_id: str, role: str):
+    item_res = (
+        client
+        .table("user_items")
+        .select("id,user_id")
+        .eq("id", item_id)
+        .single()
+        .execute()
+    )
+    if not item_res.data:
+        raise HTTPException(404, "상품을 찾을 수 없습니다.")
+
+    if role != "admin" and item_res.data["user_id"] != user_id:
+        raise HTTPException(403, "권한이 없습니다.")
+
+    return item_res.data
+
+@app.patch("/api/items/{item_id}")
+async def update_item(item_id: int, request: Request):
+    token, user, role = await require_user(request)
+    payload = await request.json()
     client = db_for_token(token)
+
+    _ensure_item_owner_or_admin(client, item_id, user.id, role)
+
+    update_data = {}
+    if "title" in payload:
+        update_data["title"] = (payload.get("title") or "").strip()
+    if "price" in payload:
+        update_data["price"] = payload.get("price")
+
+    if not update_data:
+        raise HTTPException(400, "수정할 값이 없습니다.")
+
     res = (
         client
         .table("user_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", desc=True)
+        .update(update_data)
+        .eq("id", item_id)
         .execute()
     )
     return res.data
+
+@app.delete("/api/items/{item_id}")
+async def delete_item(item_id: int, request: Request):
+    token, user, role = await require_user(request)
+    client = db_for_token(token)
+
+    _ensure_item_owner_or_admin(client, item_id, user.id, role)
+
+    res = (
+        client
+        .table("user_items")
+        .delete()
+        .eq("id", item_id)
+        .execute()
+    )
+    return {"success": True, "deleted": res.data}
