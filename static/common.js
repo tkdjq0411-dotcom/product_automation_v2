@@ -1,28 +1,31 @@
-async function apiFetch(url, options = {}) {
-  const token = localStorage.getItem("access_token");
+let supabase;
 
-  const headers = {
-    "Content-Type": "application/json",
+async function initSupabase() {
+  const res = await fetch("/api/public-config");
+  const cfg = await res.json();
+  supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+}
+
+async function apiFetch(url, options = {}) {
+  const session = (await supabase.auth.getSession()).data.session;
+  if (!session) throw new Error("로그인 필요");
+
+  options.headers = {
     ...(options.headers || {}),
+    "Authorization": `Bearer ${session.access_token}`,
+    "Content-Type": "application/json"
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(url, options);
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(text);
   }
-
-  const res = await fetch(url, { ...options, headers });
-
-  if (res.status === 401) {
-    localStorage.removeItem("access_token");
-    alert("세션이 만료되었습니다. 다시 로그인하세요.");
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
-  }
-
-  return res;
 }
 
 function logout() {
-  localStorage.removeItem("access_token");
-  window.location.href = "/login";
+  supabase.auth.signOut();
+  location.href = "/login";
 }

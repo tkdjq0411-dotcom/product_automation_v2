@@ -1,56 +1,35 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>관리자 페이지</title>
-</head>
+<html>
+<head><meta charset="utf-8"></head>
 <body>
-  <h2>관리자 – 개인 코드 발급</h2>
+<h2>관리자 - 개인 코드 발급</h2>
 
-  <input id="userId" placeholder="user_id" /><br />
-  <input id="accessCode" placeholder="개인 코드" /><br />
-  <select id="role">
-    <option value="user">user</option>
-    <option value="admin">admin</option>
-  </select><br /><br />
+<input id="uid" placeholder="user_id">
+<input id="code" placeholder="개인 코드">
+<select id="role">
+  <option value="user">user</option>
+  <option value="admin">admin</option>
+</select>
 
-  <button onclick="createCode()">발급</button>
-  <button onclick="logout()">로그아웃</button>
+<button onclick="createCode()">발급</button>
+<button onclick="logout()">로그아웃</button>
 
-  <p id="msg"></p>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/static/common.js"></script>
+<script>
+initSupabase();
 
-  <script src="/static/common.js"></script>
-  <script>
-    async function createCode() {
-      const userId = document.getElementById("userId").value.trim();
-      const accessCode = document.getElementById("accessCode").value.trim();
-      const role = document.getElementById("role").value;
-      const msg = document.getElementById("msg");
-      msg.textContent = "";
-
-      if (!userId || !accessCode) {
-        msg.textContent = "user_id와 개인 코드를 입력하세요.";
-        return;
-      }
-
-      const res = await apiFetch("/api/admin/create-code", {
-        method: "POST",
-        body: JSON.stringify({
-          user_id: userId,
-          access_code: accessCode,
-          role: role,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        msg.textContent = data.detail || "실패";
-        return;
-      }
-
-      msg.textContent = "✅ 개인 코드 발급 완료";
-    }
-  </script>
+async function createCode() {
+  await apiFetch("/api/admin/create-code", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: uid.value,
+      code: code.value,
+      role: role.value
+    })
+  });
+  alert("발급 완료");
+}
+</script>
 </body>
 </html>

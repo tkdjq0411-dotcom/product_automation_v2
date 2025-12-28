@@ -1,59 +1,29 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>개인 코드 인증</title>
+  <meta charset="utf-8">
+  <title>개인 코드</title>
 </head>
 <body>
-  <h2>개인 코드 입력</h2>
+<h2>개인 코드 입력</h2>
+<input id="code" placeholder="개인 코드">
+<button onclick="verify()">확인</button>
 
-  <input id="codeInput" placeholder="개인 코드" />
-  <button onclick="verifyCode()">확인</button>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/static/common.js"></script>
+<script>
+initSupabase();
 
-  <p id="error" style="color:red;"></p>
+async function verify() {
+  const code = document.getElementById("code").value;
+  const res = await apiFetch("/api/verify-code", {
+    method: "POST",
+    body: JSON.stringify({ access_code: code })
+  });
 
-  <script src="/static/common.js"></script>
-  <script>
-    async function verifyCode() {
-      const code = document.getElementById("codeInput").value.trim();
-      const error = document.getElementById("error");
-      error.textContent = "";
-
-      if (!code) {
-        error.textContent = "개인 코드를 입력하세요.";
-        return;
-      }
-
-      let res;
-      try {
-        res = await apiFetch("/api/verify-code", {
-          method: "POST",
-          body: JSON.stringify({ access_code: code })
-        });
-      } catch (e) {
-        error.textContent = "서버와 통신할 수 없습니다.";
-        return;
-      }
-
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        error.textContent = "서버 오류가 발생했습니다.";
-        return;
-      }
-
-      if (!res.ok) {
-        error.textContent = data.detail || "인증 실패";
-        return;
-      }
-
-      if (data.role === "admin") {
-        window.location.href = "/admin";
-      } else {
-        window.location.href = "/user";
-      }
-    }
-  </script>
+  if (res.role === "admin") location.href = "/admin";
+  else location.href = "/user";
+}
+</script>
 </body>
 </html>
