@@ -5,98 +5,51 @@
   <title>관리자 페이지</title>
 </head>
 <body>
-  <h1>관리자 - 개인 코드 발급</h1>
+  <h2>관리자 – 개인 코드 발급</h2>
 
-  <!-- 개인 코드 발급 -->
-  <input id="newCode" placeholder="새 개인 코드" />
+  <input id="userId" placeholder="user_id" /><br />
+  <input id="accessCode" placeholder="개인 코드" /><br />
+  <select id="role">
+    <option value="user">user</option>
+    <option value="admin">admin</option>
+  </select><br /><br />
+
   <button onclick="createCode()">발급</button>
-  <p id="codeMsg"></p>
+  <button onclick="logout()">로그아웃</button>
 
-  <hr />
+  <p id="msg"></p>
 
-  <!-- 상품 추가 -->
-  <h2>상품 추가</h2>
-  <input id="itemTitle" placeholder="상품명" />
-  <input id="itemPrice" type="number" placeholder="가격" />
-  <button onclick="addItem()">추가</button>
-  <p id="itemMsg"></p>
-
-  <hr />
-
-  <!-- 내 상품 조회 -->
-  <h2>내 상품 목록</h2>
-  <button onclick="loadItems()">조회</button>
-  <ul id="itemList"></ul>
-
+  <script src="/static/common.js"></script>
   <script>
-    const userId = localStorage.getItem("user_id");
-
-    if (!userId) {
-      alert("로그인 정보 없음. 다시 로그인하세요.");
-      location.href = "/";
-    }
-
-    // 개인 코드 발급
     async function createCode() {
-      const code = document.getElementById("newCode").value;
-      const msg = document.getElementById("codeMsg");
+      const userId = document.getElementById("userId").value.trim();
+      const accessCode = document.getElementById("accessCode").value.trim();
+      const role = document.getElementById("role").value;
+      const msg = document.getElementById("msg");
+      msg.textContent = "";
 
-      const res = await fetch("/api/admin/create-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          code: code,
-          role: "admin"
-        })
-      });
-
-      const data = await res.json();
-      msg.innerText = data.success ? "✅ 코드 발급 완료" : "❌ 실패";
-    }
-
-    // 상품 추가
-    async function addItem() {
-      const title = document.getElementById("itemTitle").value;
-      const price = document.getElementById("itemPrice").value;
-      const msg = document.getElementById("itemMsg");
-
-      const res = await fetch("/api/user/add-item", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": userId
-        },
-        body: JSON.stringify({ title, price })
-      });
-
-      if (!res.ok) {
-        msg.innerText = "❌ 상품 추가 실패";
+      if (!userId || !accessCode) {
+        msg.textContent = "user_id와 개인 코드를 입력하세요.";
         return;
       }
 
-      msg.innerText = "✅ 상품 추가 완료";
-      loadItems();
-    }
-
-    // 내 상품 조회
-    async function loadItems() {
-      const list = document.getElementById("itemList");
-      list.innerHTML = "";
-
-      const res = await fetch("/api/user/items", {
-        headers: {
-          "x-user-id": userId
-        }
+      const res = await apiFetch("/api/admin/create-code", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: userId,
+          access_code: accessCode,
+          role: role,
+        }),
       });
 
-      const items = await res.json();
+      const data = await res.json();
 
-      items.forEach(item => {
-        const li = document.createElement("li");
-        li.innerText = `${item.title} - ${item.price}원`;
-        list.appendChild(li);
-      });
+      if (!res.ok) {
+        msg.textContent = data.detail || "실패";
+        return;
+      }
+
+      msg.textContent = "✅ 개인 코드 발급 완료";
     }
   </script>
 </body>

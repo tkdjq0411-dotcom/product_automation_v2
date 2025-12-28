@@ -3,51 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <title>로그인</title>
-
-  <!-- Supabase SDK (이것만 1번 로드되면 됨) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h2>로그인</h2>
 
-  <input id="email" type="email" placeholder="이메일" />
-  <br /><br />
-  <input id="password" type="password" placeholder="비밀번호" />
-  <br /><br />
-  <button id="loginBtn">로그인</button>
+  <input id="email" placeholder="이메일" /><br />
+  <input id="password" type="password" placeholder="비밀번호" /><br />
+  <button onclick="login()">로그인</button>
 
-  <p id="msg"></p>
+  <p id="error" style="color:red;"></p>
 
   <script>
-    // ✅ 전역 식별자 "supabase" 선언 ❌
-    // ✅ window에만 붙인다
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const error = document.getElementById("error");
+      error.textContent = "";
 
-    if (!window.supabaseClient) {
-      window.supabaseClient = window.supabase.createClient(
-        "https://ophtycycpeqvabolrhvw.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9waHR5Y3ljcGVxdmFib2xyaHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDgzODMsImV4cCI6MjA4MjQyNDM4M30.j-TcMvOrOtujGf9Fo9LpjFCNv69d-X76e9psyMrGijA"
-      );
-    }
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const msg = document.getElementById("msg");
-
-      const { data, error } =
-        await window.supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-      if (error) {
-        msg.innerText = error.message;
+      if (!email || !password) {
+        error.textContent = "이메일과 비밀번호를 입력하세요.";
         return;
       }
 
-      localStorage.setItem("user_id", data.user.id);
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        error.textContent = data.detail || "로그인 실패";
+        return;
+      }
+
+      localStorage.setItem("access_token", data.access_token);
       window.location.href = "/code";
-    });
+    }
   </script>
 </body>
 </html>
