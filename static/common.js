@@ -1,82 +1,113 @@
-// ==============================
-// Supabase 전역 (중복 선언 방지)
-// ==============================
-if (!window._supabaseClient) {
-  window._supabaseClient = { client: null };
-}
+console.log("common.js loaded");
 
-// ==============================
-// Supabase 초기화
-// ==============================
-async function initSupabase() {
-  if (window._supabaseClient.client) return;
+let _cfg = null;
+let _sb = null;
 
+async function getPublicConfig() {
+  if (_cfg) return _cfg;
   const res = await fetch("/api/public-config");
-  const cfg = await res.json();
-
-  window._supabaseClient.client = window.supabase.createClient(
-    cfg.supabaseUrl,
-    cfg.supabaseAnonKey
-  );
+  _cfg = await res.json();
+  return _cfg;
 }
 
-// ==============================
-// 공통 API fetch (JSON 반환)
-// ==============================
-async function apiFetch(url, options = {}) {
-  await initSupabase();
-  const supabase = window._supabaseClient.client;
+async function ensureSupabaseLoaded() {
+  if (window.supabase) return;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+async function getSupabase() {
+  if (_sb) return _sb;
 
-  if (!session) {
-    throw new Error("로그인이 필요합니다");
+  const cfg = await getPublicConfig();
+  await ensureSupabaseLoaded();
+
+  _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  return _sb;
+}
+
+async function getSessionOrGoLogin() {
+  const sb = await getSupabase();
+  const { data } = await sb.auth.getSession();
+  if (!data?.session) {
+    location.href = "/login";
+    throw new Error("No session");
+  }
+  return data.session;
+}
+
+async function getAccessTokenOrThrow() {
+  const session = await getSessionOrGoLogin();
+  const token = session?.access_token;
+  if (!token) {
+    location.href = "/login";
+    throw new Error("No token");
+  }
+  return token;
+}
+
+// login.html
+async function login() {
+  const sb = await getSupabase();
+  const email = document.getElementById("email")?.value?.trim();
+  const password = document.getElementById("password")?.value?.trim();
+  const msg = document.getElementById("msg");
+  if (msg) msg.textContent = "";
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    if (msg) msg.textContent = "❌ 로그인 실패: " + error.message;
+    return;
   }
 
-  const res = await fetch(url, {
-    ...options,
+  if (msg) msg.textContent = "✅ 로그인 성공";
+  location.href = "/code";
+}
+
+// code.html
+async function verifyAccessCode() {
+  const code = document.getElementById("access_code")?.value?.trim();
+  const msg = document.getElementById("msg");
+  if (msg) msg.textContent = "";
+
+  if (!code) {
+    if (msg) msg.textContent = "코드를 입력하세요";
+    return;
+  }
+
+  const token = await getAccessTokenOrThrow();
+
+  const res = await fetch("/api/verify-access-code", {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${session.access_token}`,
-      ...(options.headers || {}),
+      "Authorization": `Bearer ${token}`
     },
+    body: JSON.stringify({ code })
   });
-
-  let data = null;
-  try {
-    data = await res.json();
-  } catch (e) {
-    // non-json 대응
-  }
 
   if (!res.ok) {
-    const msg = (data && (data.detail || data.message)) || "요청 실패";
-    throw new Error(msg);
+    const t = await res.text().catch(() => "");
+    if (msg) msg.textContent = "❌ 개인코드 인증 실패: " + (t || "권한/코드 확인");
+    return;
   }
 
-  return data;
+  const data = await res.json();
+  localStorage.setItem("role", data.role);
+
+  if (data.role === "admin") location.href = "/admin";
+  else location.href = "/user";
 }
 
-window.initSupabase = initSupabase;
-window.apiFetch = apiFetch;
+window.getPublicConfig = getPublicConfig;
+window.getSupabase = getSupabase;
+window.getSessionOrGoLogin = getSessionOrGoLogin;
+window.getAccessTokenOrThrow = getAccessTokenOrThrow;
+window.login = login;
+window.verifyAccessCode = verifyAccessCode;
 
-// ==============================
-// 개인 코드 검증
-// ==============================
-window.verifyCode = async function (code) {
-  return apiFetch("/api/verify-code", {
-    method: "POST",
-    body: JSON.stringify({ code }),
-  });
-};
-
-// ==============================
-// 로그아웃
-// ==============================
-window.logout = async function () {
-  await initSupabase();
-  await window._supabaseClient.client.auth.signOut();
-  location.href = "/login";
-};

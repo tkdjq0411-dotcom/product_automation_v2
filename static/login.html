@@ -1,48 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Login</title>
 </head>
 <body>
+  <h2>Supabase 로그인</h2>
 
-<h2>로그인</h2>
+  <div>
+    <input id="email" placeholder="email" />
+    <input id="password" type="password" placeholder="password" />
+    <button onclick="login()">로그인</button>
+  </div>
 
-<input id="email" placeholder="이메일"><br>
-<input id="password" type="password" placeholder="비밀번호"><br>
-<button onclick="login()">로그인</button>
+  <p id="msg"></p>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="/static/common.js"></script>
-
-<script>
-let sb;
-
-async function login() {
-  if (!sb) {
-    const res = await fetch("/api/public-config");
-    const cfg = await res.json();
-    sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-  }
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const { data, error } = await sb.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    alert("로그인 실패: " + error.message);
-    return;
-  }
-
-  // 로그인 성공 → 개인코드 페이지로 이동
-  location.href = "/code";
-}
-</script>
-
+  <script src="/static/common.js"></script>
 </body>
 </html>
-

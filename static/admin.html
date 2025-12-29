@@ -1,227 +1,59 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>관리자</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body { font-family: Arial, sans-serif; padding: 24px; }
-    input, button, select { padding: 10px; margin: 4px 0; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .row input, .row select { flex: 1; min-width: 160px; }
-    ul { padding-left: 18px; }
-    li { margin: 10px 0; }
-    .small { font-size: 12px; color: #666; }
-    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ccc; }
-    .pill.sell { border-color:#1b5; color:#1b5; }
-    .pill.stop { border-color:#d33; color:#d33; }
-    .card { border:1px solid #ddd; padding:12px; border-radius:10px; margin:12px 0; }
-    .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; }
-    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
-    .btns { margin-top: 6px; display:flex; gap:6px; flex-wrap:wrap; }
-  </style>
+  <meta charset="utf-8" />
+  <title>Admin</title>
 </head>
 <body>
-  <h2>관리자 (ADMIN)</h2>
-  <p class="small">관리자는 전체 상품 조회/수정/삭제 가능 + 개인코드 발급 가능 (SELL 기준: 순이익 ≥ 500원)</p>
+  <h1>👑 ADMIN</h1>
+  <p id="who"></p>
 
-  <div class="card">
-    <h3>개인 코드 발급</h3>
-    <div class="grid">
-      <input id="uid" placeholder="user_id (Supabase auth user id)" />
-      <input id="code" placeholder="개인코드(원문)" />
-      <select id="role">
-        <option value="user">user</option>
-        <option value="admin">admin</option>
-      </select>
-      <button onclick="createCode()">발급/갱신</button>
-    </div>
-    <div class="small">
-      ※ user_id는 Supabase Auth 사용자 id(UUID) 입니다.
-    </div>
+  <p><a href="/admin/dashboard">📊 대시보드 보기</a></p>
+
+  <hr />
+
+  <h2>A) 판정 기준/버퍼 설정</h2>
+  <div>
+    <label>SELL 기준 순이익(원): </label>
+    <input id="min_profit" type="number" />
+    <label style="margin-left:10px;">안전 버퍼(예: 0.01 = 1%): </label>
+    <input id="safety_buffer_rate" type="number" step="0.0001" />
+    <button onclick="saveSettings()">저장</button>
+    <span id="settings_msg"></span>
   </div>
 
-  <div class="card">
-    <h3>상품 추가 (관리자도 동일)</h3>
-    <div class="grid">
-      <input id="url" placeholder="상품 URL (선택)" />
-      <input id="title" placeholder="상품명 (선택)" />
-      <input id="market" placeholder="마켓 (예: 쿠팡/스스토/11번가)" />
-      <input id="category" placeholder="카테고리 (예: 전자/생활 등)" />
-      <input id="cost_price" type="number" placeholder="매입가" />
-      <input id="sell_price" type="number" placeholder="판매가 (필수)" />
-      <input id="shipping_fee" type="number" placeholder="배송비(판매자 부담)" />
-      <input id="commission_rate" type="number" step="0.001" placeholder="수수료율 (예: 0.108)" />
-      <select id="vat_type">
-        <option value="simple">간이과세(추정)</option>
-        <option value="normal">일반과세(추정)</option>
-      </select>
-      <button onclick="addItem()">저장</button>
-    </div>
+  <hr />
 
-    <div class="btns">
-      <button onclick="downloadAll()">전체 엑셀 다운로드</button>
-      <button onclick="downloadSell()">SELL 상품만 다운로드</button>
-    </div>
+  <h2>B) 상품 추가(자동 계산 + DB 저장)</h2>
+  <div>
+    <input id="url" placeholder="상품 URL" style="width:520px" /><br /><br />
+    <input id="buy_price" type="number" placeholder="매입가" />
+    <input id="sell_price" type="number" placeholder="판매가" />
+    <input id="shipping_fee" type="number" placeholder="배송비" value="0" />
+
+    <br /><br />
+
+    <label>오픈마켓</label>
+    <select id="market"></select>
+
+    <label style="margin-left:10px;">과세 유형</label>
+    <select id="tax_type">
+      <option value="simple">간이과세자</option>
+      <option value="general">일반과세자</option>
+    </select>
+
+    <button style="margin-left:10px;" onclick="addItem()">추가</button>
   </div>
 
-  <div class="card">
-    <div class="btns">
-      <button onclick="loadItems()">상품 조회/새로고침</button>
-      <button onclick="logout()">로그아웃</button>
-    </div>
-    <ul id="itemList"></ul>
-  </div>
+  <p id="add_msg"></p>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <hr />
+
+  <h2>C) 최근 상품(최대 100개)</h2>
+  <button onclick="loadItems()">새로고침</button>
+  <div id="items"></div>
+
   <script src="/static/common.js"></script>
-
-  <script>
-    function esc(s) {
-      return String(s ?? "").replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[m]));
-    }
-    function fmt(n) {
-      const v = Number(n);
-      if (Number.isNaN(v)) return "0";
-      return v.toLocaleString();
-    }
-
-    function downloadAll() {
-      window.location.href = "/api/items/export?mode=all";
-    }
-    function downloadSell() {
-      window.location.href = "/api/items/export?mode=sell";
-    }
-
-    async function createCode() {
-      const user_id = uid.value.trim();
-      const raw_code = code.value.trim();
-      const r = role.value;
-
-      if (!user_id || !raw_code) {
-        alert("user_id와 개인코드를 입력하세요.");
-        return;
-      }
-
-      await apiFetch("/api/admin/create-code", {
-        method: "POST",
-        body: JSON.stringify({ user_id: user_id, code: raw_code, role: r })
-      });
-
-      alert("완료");
-      code.value = "";
-    }
-
-    async function addItem() {
-      const payload = {
-        url: url.value.trim(),
-        title: title.value.trim(),
-        market: market.value.trim(),
-        category: category.value.trim(),
-        cost_price: Number(cost_price.value || 0),
-        sell_price: Number(sell_price.value || 0),
-        shipping_fee: Number(shipping_fee.value || 0),
-        commission_rate: commission_rate.value === "" ? 0 : Number(commission_rate.value),
-        vat_type: vat_type.value
-      };
-
-      if (!payload.sell_price || payload.sell_price <= 0) {
-        alert("판매가(sell_price)는 필수입니다.");
-        return;
-      }
-
-      await apiFetch("/api/items", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-
-      url.value = "";
-      title.value = "";
-      market.value = "";
-      category.value = "";
-      cost_price.value = "";
-      sell_price.value = "";
-      shipping_fee.value = "";
-      commission_rate.value = "";
-      vat_type.value = "simple";
-
-      loadItems();
-    }
-
-    async function loadItems() {
-      const items = await apiFetch("/api/items");
-      const list = document.getElementById("itemList");
-      list.innerHTML = "";
-
-      items.forEach((item) => {
-        const pillClass = (item.signal === "SELL") ? "sell" : "stop";
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <div>
-            <b>${esc(item.title || "(제목없음)")}</b>
-            <span class="pill ${pillClass}">${esc(item.signal || "")}</span>
-            <span class="small">(user_id: ${esc(item.user_id)})</span>
-            <div class="small">
-              판매가: ${fmt(item.sell_price)} / 매입가: ${fmt(item.cost_price)} / 배송비: ${fmt(item.shipping_fee)}
-              <br/>
-              수수료(${esc(item.commission_rate)}): ${fmt(item.commission_fee)} /
-              VAT(${esc(item.vat_type)}): ${fmt(item.vat_amount)}
-              <br/>
-              순이익: <b>${fmt(item.net_profit)}</b> /
-              마진율: <b>${Number(item.margin_rate || 0).toFixed(2)}%</b>
-            </div>
-            ${item.url ? `<div class="small">URL: ${esc(item.url)}</div>` : ""}
-            <div class="small">마켓: ${esc(item.market || "-")} / 카테고리: ${esc(item.category || "-")}</div>
-
-            <div class="btns">
-              <button onclick="editItem(${item.id})">수정</button>
-              <button onclick="deleteItem(${item.id})">삭제</button>
-            </div>
-          </div>
-        `;
-        list.appendChild(li);
-      });
-    }
-
-    async function editItem(id) {
-      const sell = prompt("판매가(sell_price)", "");
-      if (sell === null) return;
-
-      const cost = prompt("매입가(cost_price)", "");
-      if (cost === null) return;
-
-      const ship = prompt("배송비(shipping_fee)", "");
-      if (ship === null) return;
-
-      const cr = prompt("수수료율(commission_rate) 예: 0.108", "");
-      if (cr === null) return;
-
-      const vt = prompt("vat_type: simple 또는 normal", "simple");
-      if (vt === null) return;
-
-      await apiFetch(`/api/items/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          sell_price: Number(sell || 0),
-          cost_price: Number(cost || 0),
-          shipping_fee: Number(ship || 0),
-          commission_rate: Number(cr || 0),
-          vat_type: (vt || "simple").trim()
-        })
-      });
-
-      loadItems();
-    }
-
-    async function deleteItem(id) {
-      if (!confirm("삭제할까요?")) return;
-      await apiFetch(`/api/items/${id}`, { method: "DELETE" });
-      loadItems();
-    }
-
-    loadItems();
-  </script>
+  <script src="/static/admin.js"></script>
 </body>
 </html>

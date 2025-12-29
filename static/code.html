@@ -1,67 +1,18 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>개인 코드 인증</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 40px;
-    }
-    .box {
-      max-width: 400px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 6px;
-    }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <title>Access Code</title>
 </head>
-
 <body>
-  <div class="box">
-    <h2>개인 코드 입력</h2>
+  <h2>개인코드 입력</h2>
+  <p>로그인 후, 개인코드를 입력해야 관리자 페이지에 접근할 수 있음</p>
 
-    <input id="codeInput" placeholder="개인 코드 입력" />
-    <button id="verifyBtn">확인</button>
-  </div>
+  <input id="access_code" placeholder="개인코드" />
+  <button onclick="verifyAccessCode()">확인</button>
 
-  <!-- ⚠️ 순서 중요 -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <p id="msg"></p>
+
   <script src="/static/common.js"></script>
-
-  <script>
-    document.getElementById("verifyBtn").onclick = async () => {
-      const code = document.getElementById("codeInput").value.trim();
-
-      if (!code) {
-        alert("개인 코드를 입력하세요");
-        return;
-      }
-
-      try {
-        const res = await verifyCode(code);
-
-        if (res.role === "admin") {
-          location.href = "/admin";
-        } else {
-          location.href = "/user";
-        }
-      } catch (e) {
-        alert(e.message || "개인 코드 오류");
-        console.error(e);
-      }
-    };
-  </script>
 </body>
 </html>
-
