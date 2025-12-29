@@ -23,10 +23,8 @@ async function ensureSupabaseLoaded() {
 
 async function getSupabase() {
   if (_sb) return _sb;
-
   const cfg = await getPublicConfig();
   await ensureSupabaseLoaded();
-
   _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
   return _sb;
 }
@@ -51,7 +49,6 @@ async function getAccessTokenOrThrow() {
   return token;
 }
 
-// login.html
 async function login() {
   const sb = await getSupabase();
   const email = document.getElementById("email")?.value?.trim();
@@ -64,12 +61,10 @@ async function login() {
     if (msg) msg.textContent = "❌ 로그인 실패: " + error.message;
     return;
   }
-
   if (msg) msg.textContent = "✅ 로그인 성공";
   location.href = "/code";
 }
 
-// code.html
 async function verifyAccessCode() {
   const code = document.getElementById("access_code")?.value?.trim();
   const msg = document.getElementById("msg");
@@ -93,7 +88,7 @@ async function verifyAccessCode() {
 
   if (!res.ok) {
     const t = await res.text().catch(() => "");
-    if (msg) msg.textContent = "❌ 개인코드 인증 실패: " + (t || "권한/코드 확인");
+    if (msg) msg.textContent = "❌ 인증 실패: " + (t || "코드/권한 확인");
     return;
   }
 
@@ -110,4 +105,3 @@ window.getSessionOrGoLogin = getSessionOrGoLogin;
 window.getAccessTokenOrThrow = getAccessTokenOrThrow;
 window.login = login;
 window.verifyAccessCode = verifyAccessCode;
-

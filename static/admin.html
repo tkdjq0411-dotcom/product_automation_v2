@@ -1,55 +1,67 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>Admin</title>
-</head>
+<head><meta charset="utf-8" /><title>Admin</title></head>
 <body>
   <h1>👑 ADMIN</h1>
   <p id="who"></p>
-
-  <p><a href="/admin/dashboard">📊 대시보드 보기</a></p>
+  <p><a href="/admin/dashboard">📊 대시보드</a></p>
 
   <hr />
+  <h2>A) 관리자 설정</h2>
+  <label>SELL 기준 순이익: </label>
+  <input id="min_profit" type="number" />
+  <label style="margin-left:10px;">안전 버퍼(0.01=1%): </label>
+  <input id="safety_buffer_rate" type="number" step="0.0001" />
+  <button onclick="saveSettings()">저장</button>
+  <span id="settings_msg"></span>
 
-  <h2>A) 판정 기준/버퍼 설정</h2>
-  <div>
-    <label>SELL 기준 순이익(원): </label>
-    <input id="min_profit" type="number" />
-    <label style="margin-left:10px;">안전 버퍼(예: 0.01 = 1%): </label>
-    <input id="safety_buffer_rate" type="number" step="0.0001" />
-    <button onclick="saveSettings()">저장</button>
-    <span id="settings_msg"></span>
+  <hr />
+  <h2>B) 개인코드 발급(다른 계정에게 줄 코드)</h2>
+  <select id="code_role">
+    <option value="admin">admin</option>
+    <option value="user">user</option>
+  </select>
+  <button onclick="generateAccessCode()">코드 발급</button>
+  <span id="gen_code"></span>
+
+  <hr />
+  <h2>C) 상품 추가(자동 감지 + 자동 계산 + DB 저장)</h2>
+
+  <div style="margin-bottom:10px;">
+    <input id="url" placeholder="매입 URL" style="width:600px" />
+    <button onclick="analyzeUrl()">URL 분석(마켓/상품명 자동)</button>
+    <span id="analyze_msg"></span>
   </div>
 
-  <hr />
+  <div style="margin-bottom:10px;">
+    <input id="name" placeholder="상품명(자동 추출 실패시 직접 입력)" style="width:600px" />
+  </div>
 
-  <h2>B) 상품 추가(자동 계산 + DB 저장)</h2>
-  <div>
-    <input id="url" placeholder="상품 URL" style="width:520px" /><br /><br />
-    <input id="buy_price" type="number" placeholder="매입가" />
-    <input id="sell_price" type="number" placeholder="판매가" />
-    <input id="shipping_fee" type="number" placeholder="배송비" value="0" />
-
-    <br /><br />
-
-    <label>오픈마켓</label>
+  <div style="margin-bottom:10px;">
+    <label>마켓</label>
     <select id="market"></select>
 
-    <label style="margin-left:10px;">과세 유형</label>
+    <label style="margin-left:10px;">카테고리</label>
+    <select id="category"></select>
+
+    <label style="margin-left:10px;">과세</label>
     <select id="tax_type">
       <option value="simple">간이과세자</option>
       <option value="general">일반과세자</option>
     </select>
+  </div>
 
-    <button style="margin-left:10px;" onclick="addItem()">추가</button>
+  <div style="margin-bottom:10px;">
+    <input id="buy_price" type="number" placeholder="매입가" />
+    <input id="sell_price" type="number" placeholder="판매가" />
+    <input id="shipping_fee" type="number" placeholder="배송비" value="0" />
+    <button onclick="addItem()">추가</button>
   </div>
 
   <p id="add_msg"></p>
 
   <hr />
-
-  <h2>C) 최근 상품(최대 100개)</h2>
+  <h2>D) 최근 상품(최대 200)</h2>
   <button onclick="loadItems()">새로고침</button>
   <div id="items"></div>
 

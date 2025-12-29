@@ -29,13 +29,16 @@ async function loadDashboard() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${it.id}</td>
+      <td>${it.name || ""}</td>
       <td>${it.market}</td>
+      <td>${it.category}</td>
       <td>${it.tax_type}</td>
       <td>${it.profit}</td>
+      <td>${Number(it.margin_rate).toFixed(4)}</td>
       <td style="color:${color}; font-weight:bold;">${it.decision}</td>
       <td>${it.reason}</td>
-      <td style="max-width:420px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-        ${(it.url || "")}
+      <td style="max-width:380px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        ${it.url ? `<a href="${it.url}" target="_blank">${it.url}</a>` : ""}
       </td>
     `;
     tbody.appendChild(tr);
@@ -43,4 +46,3 @@ async function loadDashboard() {
 }
 
 loadDashboard();
-

@@ -1,40 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>Admin Dashboard</title>
-</head>
+<head><meta charset="utf-8" /><title>Admin Dashboard</title></head>
 <body>
   <h1>📊 ADMIN DASHBOARD</h1>
-  <p><a href="/admin">← 관리자 작업 페이지로</a></p>
+  <p><a href="/admin">← 관리자</a></p>
 
   <hr />
-
-  <h2>현재 판정 기준</h2>
   <p id="rule"></p>
 
-  <hr />
-
-  <h2>요약</h2>
   <ul>
-    <li>전체 상품: <strong id="total"></strong></li>
+    <li>전체: <strong id="total"></strong></li>
     <li style="color:green">SELL: <strong id="sell"></strong></li>
     <li style="color:red">STOP: <strong id="stop"></strong></li>
   </ul>
 
   <hr />
-
-  <h2>최근 판정 결과</h2>
   <table border="1" cellpadding="6" cellspacing="0">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>마켓</th>
-        <th>과세</th>
-        <th>순이익</th>
-        <th>판정</th>
-        <th>사유</th>
-        <th>URL</th>
+        <th>ID</th><th>상품명</th><th>마켓</th><th>카테고리</th><th>과세</th>
+        <th>순이익</th><th>마진율</th><th>판정</th><th>사유</th><th>URL</th>
       </tr>
     </thead>
     <tbody id="rows"></tbody>
