@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <title>Settings</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Settings</h1>
+
+    <div class="card">
+      <div class="row">
+        <label>min_profit</label>
+        <input id="min_profit" />
+        <label>safety_buffer_rate</label>
+        <input id="buffer" />
+        <button id="save">저장</button>
+        <button id="load">불러오기</button>
+      </div>
+      <div id="msg" class="small"></div>
+      <div id="err" class="error"></div>
+    </div>
+  </div>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/admin_settings.js"></script>
+</body>
+</html>

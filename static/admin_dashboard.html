@@ -1,31 +1,91 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8" /><title>Admin Dashboard</title></head>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
 <body>
-  <h1>📊 ADMIN DASHBOARD</h1>
-  <p><a href="/admin">← 관리자</a></p>
 
-  <hr />
-  <p id="rule"></p>
+  <!-- ===== LAYOUT ===== -->
+  <!-- admin_layout.html 내용을 그대로 포함 -->
+  <header class="topbar">
+    <div class="brand">
+      <b>ADMIN</b>
+      <span>product_automation_v2</span>
+    </div>
 
-  <ul>
-    <li>전체: <strong id="total"></strong></li>
-    <li style="color:green">SELL: <strong id="sell"></strong></li>
-    <li style="color:red">STOP: <strong id="stop"></strong></li>
-  </ul>
+    <nav class="nav">
+      <a href="/static/admin_dashboard.html" class="active">Dashboard</a>
+      <a href="/static/admin_overview.html">Overview</a>
+      <a href="/static/admin_items.html">Items</a>
+      <a href="/static/admin_decisions.html">Decisions</a>
+      <a href="/static/admin_settings.html">Settings</a>
+      <a href="/static/admin_analytics.html">Analytics</a>
+      <a href="/static/admin_watch.html">Watch</a>
+    </nav>
 
-  <hr />
-  <table border="1" cellpadding="6" cellspacing="0">
-    <thead>
-      <tr>
-        <th>ID</th><th>상품명</th><th>마켓</th><th>카테고리</th><th>과세</th>
-        <th>순이익</th><th>마진율</th><th>판정</th><th>사유</th><th>URL</th>
-      </tr>
-    </thead>
-    <tbody id="rows"></tbody>
-  </table>
+    <button onclick="logout()">로그아웃</button>
+  </header>
 
-  <script src="/static/common.js"></script>
-  <script src="/static/admin_dashboard.js"></script>
+  <!-- ===== CONTENT ===== -->
+  <main class="container">
+
+    <h1>대시보드</h1>
+
+    <!-- 카드 -->
+    <div class="card-grid">
+      <div class="card">
+        <div class="label">총 상품</div>
+        <div class="value">0</div>
+      </div>
+      <div class="card">
+        <div class="label">판매 가능</div>
+        <div class="value">0</div>
+      </div>
+      <div class="card">
+        <div class="label">판매 중단</div>
+        <div class="value">0</div>
+      </div>
+      <div class="card">
+        <div class="label">평균 마진율</div>
+        <div class="value">0.00%</div>
+      </div>
+    </div>
+
+    <!-- 최근 판정 -->
+    <section class="box">
+      <h2>최근 판정</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>상품명</th>
+            <th>판정</th>
+            <th>이익</th>
+            <th>마진율</th>
+            <th>사유</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" class="muted">
+              ※ 지금은 틀 단계로 데이터는 더미일 수 있습니다
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <script>
+    function logout() {
+      fetch("/api/logout", { method: "POST" })
+        .then(() => location.href = "/static/code.html");
+    }
+  </script>
+
 </body>
 </html>

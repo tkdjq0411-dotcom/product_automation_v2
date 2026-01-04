@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>상품 관리</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+
+  <!-- ===== 상단 레이아웃 ===== -->
+  <!-- 기존에 include 방식이면 그대로 두고, 아니면 이 구조 사용 -->
+  <header class="topbar">
+    <div class="brand">
+      <b id="brand-admin"></b>
+      <span id="brand-project"></span>
+    </div>
+
+    <nav class="nav">
+      <a href="/static/admin_dashboard.html" id="nav-dashboard"></a>
+      <a href="/static/admin_overview.html" id="nav-overview"></a>
+      <a href="/static/admin_items.html" id="nav-items" class="active"></a>
+      <a href="/static/admin_decisions.html" id="nav-decisions"></a>
+      <a href="/static/admin_settings.html" id="nav-settings"></a>
+      <a href="/static/admin_analytics.html" id="nav-analytics"></a>
+      <a href="/static/admin_watch.html" id="nav-watch"></a>
+    </nav>
+
+    <button id="btn-logout"></button>
+  </header>
+
+  <!-- ===== 본문 ===== -->
+  <main class="container">
+
+    <!-- 페이지 제목 -->
+    <h1 id="page-title"></h1>
+
+    <!-- 상품 추가 -->
+    <section class="box">
+      <h2 id="section-add-title"></h2>
+
+      <div class="form-row">
+        <input id="item-name" type="text" placeholder="" />
+        <input id="item-buy" type="number" placeholder="" />
+        <input id="item-sell" type="number" placeholder="" />
+        <input id="item-ship" type="number" placeholder="" />
+        <button id="btn-add"></button>
+      </div>
+    </section>
+
+    <!-- 상품 목록 -->
+    <section class="box">
+      <h2 id="section-list-title"></h2>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th id="th-name"></th>
+            <th id="th-decision"></th>
+            <th id="th-profit"></th>
+            <th id="th-margin"></th>
+            <th id="th-reason"></th>
+          </tr>
+        </thead>
+        <tbody id="items-body">
+          <tr>
+            <td colspan="6" id="items-empty"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <!-- ===== 스크립트 ===== -->
+  <script src="/static/i18n_ko.js"></script>
+
+  <script>
+    /* ===== 브랜드 ===== */
+    document.getElementById("brand-admin").innerText = I18N.brand.admin;
+    document.getElementById("brand-project").innerText = I18N.brand.project;
+
+    /* ===== 네비 ===== */
+    const n = I18N.nav;
+    document.getElementById("nav-dashboard").innerText = n.dashboard;
+    document.getElementById("nav-overview").innerText = n.overview;
+    document.getElementById("nav-items").innerText = n.items;
+    document.getElementById("nav-decisions").innerText = n.decisions;
+    document.getElementById("nav-settings").innerText = n.settings;
+    document.getElementById("nav-analytics").innerText = n.analytics;
+    document.getElementById("nav-watch").innerText = n.watch;
+
+    document.getElementById("btn-logout").innerText = I18N.common.logout;
+
+    /* ===== 페이지 제목 ===== */
+    document.getElementById("page-title").innerText = I18N.items.title;
+
+    /* ===== 섹션 ===== */
+    document.getElementById("section-add-title").innerText = I18N.items.add;
+    document.getElementById("section-list-title").innerText = I18N.items.title;
+
+    /* ===== 입력 placeholder ===== */
+    document.getElementById("item-name").placeholder = I18N.items.name;
+    document.getElementById("item-buy").placeholder = I18N.items.buy_price;
+    document.getElementById("item-sell").placeholder = I18N.items.sell_price;
+    document.getElementById("item-ship").placeholder = I18N.items.shipping_fee;
+
+    /* ===== 버튼 ===== */
+    document.getElementById("btn-add").innerText = I18N.common.add;
+
+    /* ===== 테이블 헤더 ===== */
+    document.getElementById("th-name").innerText = I18N.items.name;
+    document.getElementById("th-decision").innerText = I18N.items.decision;
+    document.getElementById("th-profit").innerText = I18N.items.profit;
+    document.getElementById("th-margin").innerText = I18N.items.margin;
+    document.getElementById("th-reason").innerText = I18N.items.reason;
+
+    /* ===== 빈 상태 ===== */
+    document.getElementById("items-empty").innerText = I18N.items.empty;
+  </script>
+
+</body>
+</html>
+

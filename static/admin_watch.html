@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <title>Watch</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Watch / Recheck</h1>
+
+    <div class="card">
+      <div class="row">
+        <input id="item_id" placeholder="item_id" />
+        <button id="one">단건 재계산</button>
+        <button id="all">전체 재계산</button>
+      </div>
+      <div id="err" class="error"></div>
+      <p class="small">※ 현재는 틀: 실제 재감시는 나중에 구현</p>
+    </div>
+  </div>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/admin_watch.js"></script>
+</body>
+</html>

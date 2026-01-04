@@ -1,107 +1,56 @@
-console.log("common.js loaded");
+function navHtml(active) {
+  const link = (href, label, key) =>
+    `<a href="${href}" class="${active === key ? "active" : ""}">${label}</a>`;
 
-let _cfg = null;
-let _sb = null;
-
-async function getPublicConfig() {
-  if (_cfg) return _cfg;
-  const res = await fetch("/api/public-config");
-  _cfg = await res.json();
-  return _cfg;
+  return `
+  <nav>
+    <div class="container">
+      <div><b>ADMIN</b> <span class="small">product_automation_v2</span></div>
+      <div class="nav-links">
+        ${link("/static/admin_dashboard.html","Dashboard","dashboard")}
+        ${link("/static/admin_overview.html","Overview","overview")}
+        ${link("/static/admin_items.html","Items","items")}
+        ${link("/static/admin_decisions.html","Decisions","decisions")}
+        ${link("/static/admin_settings.html","Settings","settings")}
+        ${link("/static/admin_analytics.html","Analytics","analytics")}
+        ${link("/static/admin_watch.html","Watch","watch")}
+      </div>
+    </div>
+  </nav>`;
 }
 
-async function ensureSupabaseLoaded() {
-  if (window.supabase) return;
-  await new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
+function mountNav(activeKey) {
+  document.body.insertAdjacentHTML("afterbegin", navHtml(activeKey));
 }
 
-async function getSupabase() {
-  if (_sb) return _sb;
-  const cfg = await getPublicConfig();
-  await ensureSupabaseLoaded();
-  _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-  return _sb;
-}
+async function api(path, opts = {}) {
+  const res = await fetch(path, { credentials: "same-origin", ...opts });
 
-async function getSessionOrGoLogin() {
-  const sb = await getSupabase();
-  const { data } = await sb.auth.getSession();
-  if (!data?.session) {
-    location.href = "/login";
-    throw new Error("No session");
-  }
-  return data.session;
-}
-
-async function getAccessTokenOrThrow() {
-  const session = await getSessionOrGoLogin();
-  const token = session?.access_token;
-  if (!token) {
-    location.href = "/login";
-    throw new Error("No token");
-  }
-  return token;
-}
-
-async function login() {
-  const sb = await getSupabase();
-  const email = document.getElementById("email")?.value?.trim();
-  const password = document.getElementById("password")?.value?.trim();
-  const msg = document.getElementById("msg");
-  if (msg) msg.textContent = "";
-
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
-    if (msg) msg.textContent = "❌ 로그인 실패: " + error.message;
-    return;
-  }
-  if (msg) msg.textContent = "✅ 로그인 성공";
-  location.href = "/code";
-}
-
-async function verifyAccessCode() {
-  const code = document.getElementById("access_code")?.value?.trim();
-  const msg = document.getElementById("msg");
-  if (msg) msg.textContent = "";
-
-  if (!code) {
-    if (msg) msg.textContent = "코드를 입력하세요";
+  if (res.status === 401) {
+    location.href = "/static/code.html";
     return;
   }
 
-  const token = await getAccessTokenOrThrow();
-
-  const res = await fetch("/api/verify-access-code", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({ code })
-  });
+  const text = await res.text();
+  let data = null;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
   if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    if (msg) msg.textContent = "❌ 인증 실패: " + (t || "코드/권한 확인");
-    return;
+    const msg = data?.detail ? JSON.stringify(data.detail) : text;
+    throw new Error(msg);
   }
-
-  const data = await res.json();
-  localStorage.setItem("role", data.role);
-
-  if (data.role === "admin") location.href = "/admin";
-  else location.href = "/user";
+  return data;
 }
 
-window.getPublicConfig = getPublicConfig;
-window.getSupabase = getSupabase;
-window.getSessionOrGoLogin = getSessionOrGoLogin;
-window.getAccessTokenOrThrow = getAccessTokenOrThrow;
-window.login = login;
-window.verifyAccessCode = verifyAccessCode;
+function pct(x) {
+  return (Number(x || 0) * 100).toFixed(2) + "%";
+}
+
+function esc(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}

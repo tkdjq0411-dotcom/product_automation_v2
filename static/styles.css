@@ -1,0 +1,129 @@
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f7f8fa;
+  color: #111827;
+}
+
+/* ===== TOP BAR ===== */
+.topbar {
+  position: relative;
+  z-index: 1000;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-size: 18px;
+}
+
+.brand b {
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+/* ===== NAV ===== */
+.nav {
+  display: flex;
+  gap: 12px;
+}
+
+.nav a {
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #2563eb;
+  font-weight: 500;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.nav a.active {
+  background: #eaf1ff;
+}
+
+.nav a:hover {
+  background: #eef2ff;
+}
+
+/* ===== BUTTON ===== */
+button {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e5e7eb;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  padding: 32px;
+}
+
+/* ===== DASHBOARD ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.card .label {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.card .value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+/* ===== BOX ===== */
+.box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  font-weight: 600;
+  text-align: left;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 14px;
+}

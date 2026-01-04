@@ -1,0 +1,25 @@
+<header class="topbar">
+  <div class="brand">
+    <b>ADMIN</b>
+    <span>product_automation_v2</span>
+  </div>
+
+  <nav class="nav">
+    <a href="/static/admin_dashboard.html" class="active">Dashboard</a>
+    <a href="/static/admin_overview.html">Overview</a>
+    <a href="/static/admin_items.html">Items</a>
+    <a href="/static/admin_decisions.html">Decisions</a>
+    <a href="/static/admin_settings.html">Settings</a>
+    <a href="/static/admin_analytics.html">Analytics</a>
+    <a href="/static/admin_watch.html">Watch</a>
+  </nav>
+
+  <button onclick="logout()">로그아웃</button>
+</header>
+
+<script>
+  function logout() {
+    fetch("/api/logout", { method: "POST" })
+      .then(() => location.href = "/static/code.html");
+  }
+</script>

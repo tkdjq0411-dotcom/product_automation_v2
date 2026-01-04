@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <title>Decisions</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Decisions</h1>
+    <div class="card">
+      <div class="row">
+        <select id="filter">
+          <option value="all">전체</option>
+          <option value="SELL">SELL</option>
+          <option value="STOP">STOP</option>
+        </select>
+        <input id="from" placeholder="from (YYYY-MM-DD)" />
+        <input id="to" placeholder="to (YYYY-MM-DD)" />
+        <button id="load">로드</button>
+      </div>
+      <div id="err" class="error"></div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>시간</th><th>item_id</th><th>prev</th><th>new</th><th>profit</th><th>reason</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <p class="small">※ 현재는 틀: logs는 비어있을 수 있음</p>
+    </div>
+  </div>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/admin_decisions.js"></script>
+</body>
+</html>

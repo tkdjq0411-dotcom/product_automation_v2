@@ -1,48 +1,40 @@
-console.log("admin_dashboard.js loaded");
+mountNav("dashboard");
 
-async function loadDashboard() {
-  const token = await window.getAccessTokenOrThrow();
+async function main() {
+  try {
+    const s = await api("/api/admin/stats");
+    document.getElementById("total").textContent = s.total;
+    document.getElementById("sell").textContent = s.sell;
+    document.getElementById("stop").textContent = s.stop;
+    document.getElementById("avg").textContent = pct(s.avg_margin_rate || 0);
+  } catch (e) {}
 
-  const res = await fetch("/api/admin/dashboard", {
-    headers: { "Authorization": `Bearer ${token}` }
+  try {
+    const r = await api("/api/admin/recent-decisions");
+    const tbody = document.getElementById("body");
+    tbody.innerHTML = "";
+    for (const it of (r.items || [])) {
+      const d = it.decision || "-";
+      const cls = d === "SELL" ? "sell" : (d === "STOP" ? "stop" : "");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${it.id}</td>
+        <td>${esc(it.name||"")}</td>
+        <td><span class="badge ${cls}">${d}</span></td>
+        <td>${it.profit ?? ""}</td>
+        <td>${pct(it.margin_rate||0)}</td>
+        <td class="small">${esc(it.reason||"")}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  } catch (e) {
+    document.getElementById("err").textContent = "최근 판정 로드 실패";
+  }
+
+  document.getElementById("logout").addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST", credentials: "same-origin" });
+    location.href = "/static/code.html";
   });
-
-  if (!res.ok) {
-    alert("대시보드 로드 실패(권한/로그인 확인)");
-    return;
-  }
-
-  const data = await res.json();
-
-  document.getElementById("rule").innerText =
-    `SELL 기준 순이익: ${data.min_profit}원 | 안전버퍼: ${data.safety_buffer_rate}`;
-
-  document.getElementById("total").innerText = data.total;
-  document.getElementById("sell").innerText = data.sell;
-  document.getElementById("stop").innerText = data.stop;
-
-  const tbody = document.getElementById("rows");
-  tbody.innerHTML = "";
-
-  for (const it of (data.items || [])) {
-    const color = it.decision === "SELL" ? "green" : "red";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${it.id}</td>
-      <td>${it.name || ""}</td>
-      <td>${it.market}</td>
-      <td>${it.category}</td>
-      <td>${it.tax_type}</td>
-      <td>${it.profit}</td>
-      <td>${Number(it.margin_rate).toFixed(4)}</td>
-      <td style="color:${color}; font-weight:bold;">${it.decision}</td>
-      <td>${it.reason}</td>
-      <td style="max-width:380px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-        ${it.url ? `<a href="${it.url}" target="_blank">${it.url}</a>` : ""}
-      </td>
-    `;
-    tbody.appendChild(tr);
-  }
 }
 
-loadDashboard();
+main();
