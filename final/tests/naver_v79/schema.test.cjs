@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync(__dirname+'/../../chrome_extension/naver_source_helper/capture.js','utf8');
+const c={};vm.createContext(c);vm.runInContext(src.slice(src.indexOf('function inferRequiredSchema'),src.indexOf('async function collectDependentMainVariants')),c);
+const fixture=JSON.parse(fs.readFileSync(__dirname+'/schema_fixture.json','utf8'));
+const result=c.inferRequiredSchema(fixture,['종류','색상','호수']);
+assert.equal(fixture.optionGroups.length,4);assert.equal(result.depth,3);
+assert(result.paths.some(p=>p[0]==='01. 핀도래'&&p[1]==='블랙'));
+assert.equal(new Set(result.paths.map(p=>p[0])).size,9);
+assert.equal(new Set(result.paths.map(p=>JSON.stringify(p))).size,result.paths.length);
+console.log(JSON.stringify({depth:result.depth,expectedPaths:result.paths.length,blackPaths:result.paths.filter(p=>p[1]==='블랙').length,parents:9}));
+for(const depth of [1,2,4,7,30])assert.equal(c.inferRequiredSchema(fixture,Array.from({length:depth},(_,i)=>`옵션${i}`)).depth,depth);
+console.log('Real diagnostic contaminated probe schema regression PASS');

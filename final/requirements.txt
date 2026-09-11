@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+httpx
+python-dotenv
+pydantic
+openpyxl
+python-multipart
+bcrypt
+playwright

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>B2B 자동화 플랫폼</title>
+  <link rel="stylesheet" href="/web/styles.css?v=20260902-product-restore" />
+</head>
+<body>
+  <div id="toast" class="toast hidden"></div>
+
+  <section id="authSection" class="auth-shell">
+    <div class="auth-brand">
+      <div class="brand-lockup brand-lockup-large">
+        <div><strong>B2B</strong><span>자동화 플랫폼</span></div>
+      </div>
+      <div class="auth-copy">
+        <p class="eyebrow">SELLER OPERATIONS</p>
+        <h1>상품 소싱부터 가격·주문·배송까지<br/>한 곳에서 운영합니다.</h1>
+        <p>현재 MVP 기능은 상품·공급처·수익 계산·판매/중지·최저 판매 가능가·대량 작업·로그를 실제 API와 연결합니다.</p>
+      </div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-card">
+        <div class="auth-tabs"><button class="active" data-auth-tab="login">로그인</button><button data-auth-tab="signup">회원가입</button></div>
+        <form id="loginForm" class="auth-form">
+          <label>이메일<input id="loginEmail" type="email" autocomplete="username" required placeholder="name@company.com" /></label>
+          <label>비밀번호<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="비밀번호" /></label>
+          <button type="submit" class="primary-btn full">로그인</button>
+        </form>
+        <form id="signupForm" class="auth-form hidden">
+          <label>이메일<input id="signupEmail" type="email" autocomplete="username" required placeholder="name@company.com" /></label>
+          <label>비밀번호<input id="signupPassword" type="password" autocomplete="new-password" required placeholder="8자 이상 권장" /></label>
+          <button type="submit" class="primary-btn full">회원가입</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section id="appSection" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand-spacer" aria-hidden="true"></div>
+
+      <nav id="sideNav" class="side-nav">
+        <button class="nav-item active" data-page="home"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5M9.5 21v-7h5v7"/></svg></span>홈</button>
+        <div class="nav-label">상품</div>
+        <button class="nav-item" data-page="sourcing"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4.3 4.3"/></svg></span>상품 소싱</button>
+        <button class="nav-item" data-page="products"><span class="ico"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7v10l8 4 8-4V7M12 11v10"/></svg></span>상품 관리</button>
+        <button class="nav-item" data-page="pricing"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M8.5 9.2c.8-1.5 6-1.7 6.5.5.6 2.6-6.7 1.5-6 4.4.5 2.3 5.7 2.1 6.6.4"/></svg></span>가격 추적</button>
+        <button class="nav-item" data-page="ai"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.8 2.8M16.2 16.2 19 19M19 5l-2.8 2.8M7.8 16.2 5 19"/></svg></span>AI 상품 제작</button>
+        <div class="nav-label">판매</div>
+        <button class="nav-item" data-page="orders"><span class="ico"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h8M8 15h5"/><path d="m3 6 2 2 3-3"/></svg></span>주문<span class="nav-badge muted" id="navOrderCount">0</span></button>
+        <button class="nav-item" data-page="purchase"><span class="ico"><svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></span>발주<span class="nav-badge muted" id="navPurchaseCount">0</span></button>
+        <button class="nav-item" data-page="shipping"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>배송<span class="nav-badge muted" id="navShippingCount">0</span></button>
+        <div class="nav-label">관리</div>
+        <button class="nav-item" data-page="suppliers"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2c0-3 2.5-5 6-5s6 2 6 5v2"/><circle cx="17" cy="9" r="2.5"/><path d="M15 14c3.5-.8 6 1 6 4v2"/></svg></span>공급처</button>
+        <button class="nav-item" data-page="bulk"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5v14M16 5v14"/></svg></span>대량 작업</button>
+        <button class="nav-item" data-page="logs"><span class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>로그</button>
+        <div class="nav-divider"></div>
+        <button class="nav-item" data-page="settings"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg></span>설정</button>
+      </nav>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button id="mobileMenuBtn" class="mobile-menu">☰</button>
+        <div class="topbar-spacer"></div>
+        <button class="bell-btn" title="알림"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="bell-dot" id="bellCount">0</span></button>
+        <div class="top-search"><span class="search-svg"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4.3 4.3"/></svg></span><input id="globalSearch" placeholder="상품명, 주문번호, 운송장번호 검색" /><button id="globalSearchBtn" aria-label="검색"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.2 16.2 4.3 4.3"/></svg></button></div>
+        <div class="account-wrap">
+          <button id="accountMenuBtn" class="top-account" type="button" aria-expanded="false">
+            <div class="avatar small">B</div><div><strong>대표님</strong><span id="topUserEmail">-</span></div><span class="account-chevron">⌄</span>
+          </button>
+          <div id="accountMenu" class="account-menu hidden">
+            <div class="account-menu-head"><strong>대표님</strong><span id="accountMenuEmail">-</span></div>
+            <button id="logoutBtn" class="logout-menu-btn" type="button">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="page active home-page" data-page-section="home">
+          <div class="page-head home-head">
+            <div>
+              <h1>안녕하세요, 대표님! 👋</h1>
+              <p>오늘도 성공적인 비즈니스를 응원합니다.</p>
+            </div>
+            <div class="head-actions">
+              <span class="date-pill" id="todayLabel">-</span>
+              <button id="refreshHomeBtn" class="secondary-btn refresh-btn">↻ <span>새로고침</span></button>
+            </div>
+          </div>
+
+          <div class="kpi-grid dashboard-kpis">
+            <article class="kpi"><div class="kpi-icon blue">🛒</div><div><span>신규 주문</span><strong><b id="homeOrderCount">0</b><em>건</em></strong><small>어제보다 <i class="up">+0</i></small></div></article>
+            <article class="kpi"><div class="kpi-icon orange">♙</div><div><span>발주 대기</span><strong><b id="homePurchaseCount">0</b><em>건</em></strong><small>어제보다 <i class="down">-0</i></small></div></article>
+            <article class="kpi"><div class="kpi-icon purple">▰</div><div><span>배송 문제</span><strong><b id="homeShippingIssueCount">0</b><em>건</em></strong><small>어제보다 <i class="up green-text">-0</i></small></div></article>
+            <article class="kpi"><div class="kpi-icon violet">↗</div><div><span>가격 변동</span><strong><b id="homePricingCount">0</b><em>건</em></strong><small>어제보다 <i class="down">+0</i></small></div></article>
+            <article class="kpi"><div class="kpi-icon gray">×</div><div><span>판매 중지 상품</span><strong><b id="homeStopCount">0</b><em>건</em></strong><small>어제보다 <i class="down">+0</i></small></div></article>
+            <article class="kpi profit"><div class="kpi-icon green">▰</div><div><span>오늘 예상 이익</span><strong id="homeProfitTotal">₩0</strong><small>어제보다 <i class="up green-text">+₩0</i></small></div></article>
+          </div>
+
+          <div class="home-panels dashboard-panels">
+            <article class="panel span-5 order-card">
+              <div class="panel-head"><h2>처리할 주문</h2><button data-go-page="orders">전체 보기 ›</button></div>
+              <div id="homeActionProducts" class="order-list"></div>
+            </article>
+            <article class="panel span-4 price-card">
+              <div class="panel-head"><h2>가격 알림</h2><button data-go-page="pricing">전체 보기 ›</button></div>
+              <div id="homePriceAlerts" class="price-list"></div>
+            </article>
+            <article class="panel span-3 alert-card">
+              <div class="panel-head"><h2>알림</h2><button data-go-page="logs">전체 보기 ›</button></div>
+              <div id="homeNotifications" class="notification-list dashboard-notices"></div>
+            </article>
+          </div>
+
+          <div class="home-bottom dashboard-bottom">
+            <article class="panel orders-table-panel">
+              <div class="panel-head dashboard-table-head">
+                <div><h2>주문 현황</h2><div class="tabs-inline"><span class="active">발주 대기 (<b id="homeOrderTabWait">0</b>)</span><span>신규 주문 (<b id="homeOrderTabNew">0</b>)</span><span>배송 중 (<b id="homeOrderTabShipping">0</b>)</span><span>배송 완료 (<b id="homeOrderTabDone">0</b>)</span></div></div>
+                <button data-go-page="orders">전체 보기 ›</button>
+              </div>
+              <div class="table-wrap"><table class="dashboard-table orders-table"><thead><tr><th>주문일시</th><th>채널</th><th>주문번호</th><th>상품명</th><th>수량</th><th>주문금액</th><th>상태</th><th>작업</th></tr></thead><tbody id="homeOrderTable"></tbody></table></div>
+            </article>
+            <article class="panel shipping-table-panel">
+              <div class="panel-head"><h2>최근 배송 현황</h2><button data-go-page="shipping">전체 보기 ›</button></div>
+              <div class="table-wrap"><table class="dashboard-table"><thead><tr><th>운송장번호</th><th>택배사</th><th>상품명</th><th>배송상태</th><th>예상도착</th></tr></thead><tbody id="homeShippingTable"></tbody></table></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" data-page-section="products">
+          <div class="page-head"><div><p class="eyebrow">PRODUCTS</p><h1>상품 관리</h1><p>상품 원가·판매가·수익성과 판매/중지 상태를 관리합니다.</p></div><button id="openProductFormBtn" class="primary-btn">+ 상품 등록</button></div>
+          <article class="panel toolbar-panel"><div class="search-row"><input id="productSearch" placeholder="상품명 또는 SKU 검색"/><select id="productStatusFilter"><option value="">전체 상태</option><option value="SELL">판매</option><option value="STOP">중지</option></select><select id="productSupplierFilter"><option value="">전체 공급처</option></select><button id="productSearchBtn" class="secondary-btn">검색</button></div></article>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>상품</th><th>SKU</th><th>공급처</th><th>매입가</th><th>판매가</th><th>순이익</th><th>마진</th><th>상태</th><th></th></tr></thead><tbody id="productTableBody"></tbody></table></div></article>
+        </section>
+
+        <section class="page" data-page-section="pricing">
+          <div class="page-head"><div><p class="eyebrow">PRICE MONITOR</p><h1>가격 추적</h1><p>경쟁 최저가를 입력·저장하고 최저 판매 가능가와 즉시 비교합니다.</p></div><button id="recalculateAllBtn" class="secondary-btn">전체 재계산</button></div>
+          <div class="info-banner">경쟁가를 저장한 뒤 자동화 실행을 누르면 경쟁가보다 설정 금액만큼 낮춰 판매가를 자동 조정합니다. 경쟁가가 최저 판매 가능가보다 낮으면 자동 중지하며, 수익 구간으로 돌아오면 다시 판매가를 계산합니다.</div>
+          <article class="panel automation-toolbar"><div><strong>가격 자동화</strong><p class="muted">상품별 추적 여부와 언더컷 금액을 설정하고 현재 저장된 경쟁가 기준으로 즉시 실행합니다.</p></div><div class="row-actions"><button id="runAutomationBtn" class="primary-btn">자동화 지금 실행</button><button id="loadAutomationHistoryBtn" class="secondary-btn">실행 이력</button></div></article>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>상품</th><th>경쟁 최저가</th><th>현재 판매가</th><th>최저 판매 가능가</th><th>자동화</th><th>언더컷</th><th>예상 동작</th><th>작업</th></tr></thead><tbody id="pricingTableBody"></tbody></table></div></article>
+          <article class="panel"><div class="panel-head"><h2>가격 자동화 이력</h2></div><div id="automationHistory" class="log-list full"><div class="muted">이력 불러오기를 누르면 최근 자동 조정 기록을 표시합니다.</div></div></article>
+        </section>
+
+        <section class="page" data-page-section="suppliers">
+          <div class="page-head"><div><p class="eyebrow">SUPPLIERS</p><h1>공급처</h1><p>사입처 정보를 상품과 연결해서 관리합니다.</p></div><button id="openSupplierFormBtn" class="primary-btn">+ 공급처 등록</button></div>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>공급처</th><th>메모</th><th>등록일</th><th></th></tr></thead><tbody id="supplierTableBody"></tbody></table></div></article>
+        </section>
+
+        <section class="page" data-page-section="bulk">
+          <div class="page-head"><div><p class="eyebrow">BULK WORK</p><h1>대량 작업</h1><p>CSV / Excel로 상품을 대량 등록하거나 내보냅니다.</p></div></div>
+          <article class="panel bulk-card"><div class="dropzone"><strong>상품 파일 업로드</strong><p>CSV 또는 XLSX · 최대 5,000행</p><input id="bulkFile" type="file" accept=".csv,.xlsx"/></div><div class="bulk-actions"><button id="bulkImportBtn" class="primary-btn">대량 등록</button><button id="templateCsvBtn" class="secondary-btn">CSV 양식</button><button id="templateXlsxBtn" class="secondary-btn">Excel 양식</button><button id="exportCsvBtn" class="secondary-btn">CSV 내보내기</button><button id="exportXlsxBtn" class="secondary-btn">Excel 내보내기</button><button id="exportOrdersReportBtn" class="secondary-btn">주문 리포트 CSV</button></div><p id="bulkResult" class="muted"></p></article>
+        </section>
+
+        <section class="page" data-page-section="logs">
+          <div class="page-head"><div><p class="eyebrow">ACTIVITY</p><h1>로그</h1><p>시스템이 처리한 변경 사항을 시간순으로 확인합니다.</p></div><button id="reloadLogsBtn" class="secondary-btn">↻ 새로고침</button></div>
+          <article class="panel"><div id="logsList" class="log-list full"></div></article>
+        </section>
+
+        <section class="page" data-page-section="settings">
+          <div class="page-head"><div><p class="eyebrow">SETTINGS</p><h1>설정</h1><p>계정과 요금제 사용량을 확인합니다.</p></div></div>
+          <div class="settings-grid"><article class="panel"><h2>계정</h2><div class="setting-line"><span>이메일</span><strong id="settingsEmail">-</strong></div><div class="setting-line"><span>권한</span><strong id="settingsRole">-</strong></div><div class="settings-danger"><div><strong>로그아웃</strong><p>현재 기기에서 로그인 세션을 종료합니다.</p></div><button id="settingsLogoutBtn" class="danger-btn" type="button">로그아웃</button></div></article><article class="panel"><h2>요금제 / 사용량</h2><div class="setting-line"><span>현재 요금제</span><strong id="settingsPlan">-</strong></div><div class="setting-line"><span>상품 사용량</span><strong id="settingsProductUsage">-</strong></div><div class="setting-line"><span>계산 사용량</span><strong id="settingsCalcUsage">-</strong></div></article><article class="panel span-settings"><div class="panel-head"><div><h2>판매 채널 연결 준비</h2><p class="muted">API 키 자체는 화면에 저장하지 않고 서버 환경변수로 연결하는 구조입니다.</p></div></div><div id="integrationList" class="integration-grid"></div></article></div>
+          <article class="panel tax-reserve-panel"><div class="panel-head"><div><h2>세금 적립 · 실제 사용 가능 이익</h2><p class="muted">순이익에서 설정한 비율을 미리 사용 금지금액으로 분리합니다.</p></div><button id="reloadTaxReserveBtn" class="secondary-btn">↻ 다시 계산</button></div><div class="tax-reserve-grid"><div class="setting-line"><span>세전 순이익</span><strong id="taxTotalProfit">₩0</strong></div><div class="setting-line"><span>세금 안전 적립금</span><strong id="taxReserved">₩0</strong></div><div class="setting-line"><span>실제 사용 가능 이익</span><strong id="taxUsableProfit">₩0</strong></div><div class="setting-line"><span>예상 부가세 납부액</span><strong id="taxVatPayable">₩0</strong></div></div><div class="search-row tax-setting-row"><label>순이익 안전 적립률 (%)<input id="profitTaxReserveRate" type="number" min="0" max="100" step="0.1" value="10"/></label><label>소득세 추가 적립률 (%)<input id="incomeTaxReserveRate" type="number" min="0" max="100" step="0.1" value="0"/></label><button id="saveTaxReserveBtn" class="primary-btn">적립률 저장</button></div><p id="taxReserveNotice" class="muted"></p></article>
+        </section>
+
+        <section class="page" data-page-section="sourcing">
+          <div class="page-head"><div><p class="eyebrow">SOURCING</p><h1>상품 소싱</h1><p>재고를 보유하지 않는 판매자를 위한 URL 중심 자동 소싱입니다.</p></div><button id="openSourcingBtn" class="secondary-btn">직접 입력</button></div>
+          <article class="panel sourcing-url-panel">
+            <div class="panel-head"><div><h2>상품 URL 하나로 가져오기</h2><p class="muted">국내: 네이버 스마트스토어/네이버쇼핑 · 쿠팡 · G마켓 · 옥션 · 11번가 / 중국: Alibaba.com · 1688 · AliExpress · Taobao · Tmall / 글로벌: Amazon · eBay · Temu 상품 URL을 실제 분석합니다.</p></div></div>
+            <div class="url-import-row"><input id="sourcingQuickUrl" type="url" placeholder="실제 공급처/오픈마켓 상품 상세 URL을 붙여넣으세요"/><button id="importSourcingUrlBtn" class="primary-btn" type="button">실제 URL 가져오기</button></div>
+            <div id="sourcingImportResult" class="import-result hidden"></div>
+            <p class="muted sourcing-policy-note">공개 페이지/API에서 허용되는 정보만 가져옵니다. 로그인·CAPTCHA·접근제한 사이트는 우회하지 않으며 해당 플랫폼의 공식 API/제휴 연동으로 연결합니다.</p>
+          </article>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>상품</th><th>플랫폼/공급처</th><th>매입가</th><th>배송비</th><th>공급상태</th><th>원본 링크</th><th>등록일</th><th></th></tr></thead><tbody id="sourcingTableBody"></tbody></table></div></article>
+        </section>
+        <section class="page" data-page-section="ai">
+          <div class="page-head"><div><p class="eyebrow">AI CONTENT</p><h1>AI 상품 제작</h1><p>등록 상품을 기준으로 판매용 문구 초안을 즉시 만듭니다.</p></div></div>
+          <div class="info-banner">현재 버전은 외부 AI API 없이 동작하는 로컬 초안 생성기입니다. 실제 AI 이미지/상세페이지 생성은 API 연결 단계에서 교체할 수 있습니다.</div>
+          <article class="panel ai-maker"><div class="search-row ai-row"><select id="aiProductSelect"><option value="">직접 입력</option></select><input id="aiSourceName" placeholder="상품명 입력"/><button id="generateAiDraftBtn" class="primary-btn">초안 생성</button></div></article>
+          <article class="panel"><div id="aiDraftList" class="draft-grid"></div></article>
+        </section>
+        <section class="page" data-page-section="orders">
+          <div class="page-head"><div><p class="eyebrow">ORDERS</p><h1>주문</h1><p>채널 주문을 한 곳에서 저장하고 발주·배송으로 넘깁니다.</p></div><button id="openOrderBtn" class="primary-btn">+ 주문 등록</button></div>
+          <div class="info-banner">네이버/쿠팡 API 연결 전에도 수기 주문 등록으로 전체 발주·배송 흐름을 실제 테스트할 수 있습니다.</div>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>채널</th><th>주문번호</th><th>상품</th><th>수량</th><th>금액</th><th>수취인</th><th>상태</th><th>작업</th></tr></thead><tbody id="ordersTableBody"></tbody></table></div></article>
+        </section>
+        <section class="page" data-page-section="purchase">
+          <div class="page-head"><div><p class="eyebrow">PURCHASE</p><h1>발주</h1><p>주문별 공급처 링크와 발주 금액을 준비하고 결제 완료를 기록합니다.</p></div><button id="openPurchaseBtn" class="primary-btn">+ 발주 생성</button></div>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>주문번호</th><th>상품</th><th>공급처</th><th>발주금액</th><th>상태</th><th>공급처 링크</th><th>작업</th></tr></thead><tbody id="purchaseTableBody"></tbody></table></div></article>
+        </section>
+        <section class="page" data-page-section="shipping">
+          <div class="page-head"><div><p class="eyebrow">SHIPPING</p><h1>배송</h1><p>택배사·송장번호·배송 진행 상태를 주문과 연결합니다.</p></div><button id="openShipmentBtn" class="primary-btn">+ 송장 등록</button></div>
+          <article class="panel"><div class="table-wrap"><table><thead><tr><th>주문번호</th><th>상품</th><th>택배사</th><th>운송장번호</th><th>배송상태</th><th>예상도착</th><th>작업</th></tr></thead><tbody id="shippingTableBody"></tbody></table></div></article>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden"></div>
+  <section id="productModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-head"><div><p class="eyebrow">PRODUCT</p><h2 id="productModalTitle">상품 등록</h2></div><button class="modal-close" data-close-modal>×</button></div>
+    <form id="productForm" class="form-grid">
+      <input id="productId" type="hidden"/>
+      <label class="span-2">상품명<input id="productName" required/></label>
+      <label>SKU<input id="productSku"/></label>
+      <label>공급처<select id="productSupplier"><option value="">공급처 없음</option></select></label>
+      <label>매입가<input id="purchasePrice" type="number" min="0" step="0.01" value="0"/></label>
+      <label>국제배송비<input id="internationalShipping" type="number" min="0" step="0.01" value="0"/></label>
+      <label>국내배송비<input id="domesticShipping" type="number" min="0" step="0.01" value="0"/></label>
+      <label>판매가<input id="sellingPrice" type="number" min="0" step="0.01" value="0"/></label>
+      <label>수수료율<input id="feeRate" type="number" min="0" max="1" step="0.001" value="0"/></label>
+      <label>VAT율<input id="vatRate" type="number" min="0" max="1" step="0.001" value="0.1"/></label>
+      <label class="span-2">대표 이미지 URL<input id="mainImageUrl" type="url"/></label>
+      <label class="span-2">상세 이미지 URL<input id="detailImageUrl" type="url"/></label>
+      <div class="form-footer span-2"><button type="button" class="secondary-btn" data-close-modal>취소</button><button class="primary-btn" type="submit">저장</button></div>
+    </form>
+  </section>
+
+  <section id="supplierModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-head"><div><p class="eyebrow">SUPPLIER</p><h2 id="supplierModalTitle">공급처 등록</h2></div><button class="modal-close" data-close-modal>×</button></div>
+    <form id="supplierForm" class="form-grid one-col">
+      <input id="supplierId" type="hidden"/>
+      <label>공급처명<input id="supplierName" required/></label>
+      <label>메모<textarea id="supplierMemo" rows="5"></textarea></label>
+      <div class="form-footer"><button type="button" class="secondary-btn" data-close-modal>취소</button><button class="primary-btn" type="submit">저장</button></div>
+    </form>
+  </section>
+
+
+  <section id="sourcingModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-head"><div><p class="eyebrow">SOURCING</p><h2>소싱 상품 확인·저장</h2></div><button class="modal-close" data-close-modal>×</button></div><form id="sourcingForm" class="form-grid"><input id="sourcingPlatform" type="hidden"/><input id="sourcingProductId" type="hidden"/><input id="sourcingCurrency" type="hidden"/><input id="sourcingImportStatus" type="hidden"/><input id="sourcingSupplierName" type="hidden"/><input id="sourcingStoreName" type="hidden"/><input id="sourcingStoreUrl" type="hidden"/><input id="sourcingOptionsJson" type="hidden"/><input id="sourcingImageUrlsJson" type="hidden"/><label class="span-2">상품명<input id="sourcingName" required/></label><label>공급처<select id="sourcingSupplier"><option value="">선택 안 함</option></select></label><label>공급 상태<select id="sourcingAvailability"><option value="AVAILABLE">공급 가능</option><option value="OUT_OF_STOCK">품절</option><option value="UNKNOWN">확인 필요</option></select></label><label>매입가<input id="sourcingPrice" type="number" min="0" step="0.01" placeholder="수집 대기"/></label><label>배송비<input id="sourcingShipping" type="number" min="0" step="0.01" placeholder="수집 대기"/></label><label class="span-2">공급처 상품 URL<input id="sourcingUrl" type="url"/></label><label class="span-2">대표 이미지 URL<input id="sourcingImage" type="url"/></label><div class="span-2"><div class="field-title">상품 이미지 전체 <span id="sourcingImageCount" class="muted"></span></div><div id="sourcingImageGallery" class="sourcing-image-gallery"></div></div><div class="span-2"><div class="field-title">옵션</div><input id="sourcingOptions" type="hidden"/><div id="sourcingOptionGroups" class="sourcing-option-groups"><div class="muted">자동수집된 옵션이 여기에 표시됩니다.</div></div></div><div class="span-2 sourcing-additional-section"><div class="field-title">추가 옵션</div><div id="sourcingAdditionalOptionGroups" class="sourcing-option-groups"><div class="muted">자동수집된 추가 옵션이 여기에 표시됩니다.</div></div></div><label class="span-2">메모<textarea id="sourcingMemo" rows="3"></textarea></label><div id="sourcingAutoMeta" class="span-2 muted"></div><div class="form-footer span-2"><button type="button" class="secondary-btn" data-close-modal>취소</button><button class="primary-btn">소싱 상품 저장</button></div></form></section>
+  <section id="orderModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-head"><div><p class="eyebrow">ORDER</p><h2>주문 등록</h2></div><button class="modal-close" data-close-modal>×</button></div><form id="orderForm" class="form-grid"><label>채널<select id="orderChannel"><option>NAVER</option><option>COUPANG</option><option>11ST</option><option>MANUAL</option></select></label><label>주문번호<input id="orderNo" required/></label><label class="span-2">상품명<input id="orderProductName" required/></label><label>옵션<input id="orderOption"/></label><label>수량<input id="orderQty" type="number" min="1" value="1"/></label><label>판매금액<input id="orderSalePrice" type="number" min="0" value="0"/></label><label>예상이익<input id="orderProfit" type="number" value="0"/></label><label>수취인<input id="orderRecipient"/></label><label>연락처<input id="orderPhone"/></label><label>우편번호<input id="orderPostal"/></label><label class="span-2">주소<input id="orderAddress"/></label><label class="span-2">상세주소<input id="orderDetailAddress"/></label><label>공급처<input id="orderSupplier"/></label><label>공급처 URL<input id="orderSourceUrl" type="url"/></label><div class="form-footer span-2"><button type="button" class="secondary-btn" data-close-modal>취소</button><button class="primary-btn">저장</button></div></form></section>
+  <section id="purchaseModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-head"><div><p class="eyebrow">PURCHASE</p><h2>발주 생성</h2></div><button class="modal-close" data-close-modal>×</button></div><form id="purchaseForm" class="form-grid one-col"><label>주문<select id="purchaseOrderSelect" required></select></label><label>공급처<input id="purchaseSupplier"/></label><label>공급처 URL<input id="purchaseUrl" type="url"/></label><label>발주 금액<input id="purchaseAmount" type="number" min="0" value="0"/></label><label>메모<textarea id="purchaseNote" rows="3"></textarea></label><div class="form-footer"><button type="button" class="secondary-btn" data-close-modal>취소</button><button class="primary-btn">발주 준비 저장</button></div></form></section>
+  <section id="shipmentModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-head"><div><p class="eyebrow">SHIPPING</p><h2>송장 등록</h2></div><button class="modal-close" data-close-modal>×</button></div><form id="shipmentForm" class="form-grid one-col"><label>주문<select id="shipmentOrderSelect" required></select></label><label>택배사<input id="shipmentCarrier" placeholder="CJ대한통운"/></label><label>운송장번호<input id="shipmentTrackingNo"/></label><label>배송상태<select id="shipmentStatus"><option value="READY">배송 준비</option><option value="IN_TRANSIT">배송 중</option><option value="OUT_FOR_DELIVERY">배송 출발</option><option value="DELIVERED">배송 완료</option></select></label><label>예상도착<input id="shipmentExpected" type="date"/></label><div class="form-footer"><button type="button" class="secondary-btn" data-close-modal>취소</button><button class="primary-btn">저장</button></div></form></section>
+
+  <script src="/web/app.js?v=20260907-regression-safe-recovery"></script>
+</body>
+</html>

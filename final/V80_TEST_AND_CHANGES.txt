@@ -1,0 +1,41 @@
+V80 / Extension 2.61.13
+
+원인 확인 자료: 사용자 제공 2.61.12 진단 (상품 5315549015)
+- elapsed_ms=180714
+- DOM 색상: 실버, 골드, 단색 (블랙 없음)
+- probe standardCombinations: 179개 경로, 9개 종류, 블랙 33개
+- probe 그룹에는 중복 별칭 및 이미지 URL 그룹 포함(4개).
+- 기존 코드는 이 그룹 수를 단계 수로 사용: 실제 3단계 상품을 4단계로
+  잘못 처리할 수 있어 마지막 호수까지 클릭하는 코드 결함 확인.
+  당시 개별 클릭 기록이 없으므로 블랙이 사라진 정확한 이벤트 순서는 미확정.
+
+수정
+- 실제 semantic 필수옵션 버튼을 단계 기준으로 사용. 비활성 버튼도 포함.
+- generic probe 그룹 개수로 단계를 늘리지 않음.
+- standardCombinations 경로가 실제 그룹 차원과 일치할 때만 누락 비교에 사용.
+- 원본과 수집 결과의 전체 경로 비교: expected/captured/missing/missing_paths 기록.
+- 미확보 경로가 있으면 PARTIAL. 원본에 가격/품절이 없으면 임의로 생성하지 않음.
+- 각 부모 클릭/목록 읽기 진단 추가.
+- 네트워크 probe 옵션값에서 이미지 URL 제외.
+- B2B UI의 잔여 10000조합 자르기 제거.
+- 기존 180초 stop, 누적값 보존, ACK 후 임시탭 복귀 유지.
+
+검증
+node tests/naver_v79/schema.test.cjs
+node tests/naver_v79/collector.test.cjs
+node tests/naver_v79/background.test.cjs
+python tests/naver_v79/server_test.py
+실제 제공 진단의 옵션 목록을 회귀 fixture로 사용.
+179개/블랙33개/9종류 복원 및 3단계 판정 PASS.
+1/2/3/4/7/30단계 모의 DFS, terminal 클릭 없음, 클릭 전 잠금,
+시간 만료/분기 오류 보존, 음수 가격, ACK/탭 복귀 테스트 PASS.
+실제 네이버 접근은 서비스 접속 불가 화면으로 실사용 검증 미완료.
+사진/진단에서 확인되지 않은 네트워크 가격 스키마는 추정해 구현하지 않음.
+숨은 다음 단계가 DOM에도 없고 확인 가능한 스키마도 없으면 완전수집 보장 불가.
+
+사용
+기존처럼 final 폴더에서 서버 실행(실행중이면 재시작).
+chrome://extensions 에서 해당 도우미 새로고침, 버전 2.61.13 확인.
+B2B 페이지 새로고침 후 수집. 일반옵션 진단의 coverage_audit에서
+expected=179, missing=0인지 확인. 실제 값은 상품 변경에 따라 달라질 수 있음.
+기존 서버 ACK는 미리보기 캐시 저장이며 상품 영구 등록은 확인/수정 후 저장.

@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+data/*.sqlite3-shm
+data/*.sqlite3-wal
+
+# Local runtime database (persistent copy lives outside project)
+data/*.sqlite3
+.api_bootstrap.env

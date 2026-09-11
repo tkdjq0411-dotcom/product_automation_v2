@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "B2B 네이버 상품 수집 도우미",
+  "version": "2.61.14",
+  "description": "V78 혼합형 DFS: 중간 옵션만 경로별 1회 클릭, 마지막 옵션은 스크롤 DOM 전체수집, 부모경로 중복잠금, 최대30단계, 저장 ACK 후 임시 네이버 탭 자동닫기/B2B 복귀",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://smartstore.naver.com/*",
+    "https://brand.naver.com/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://smartstore.naver.com/*/products/*",
+        "https://brand.naver.com/*/products/*"
+      ],
+      "js": [
+        "network_hook.js",
+        "option_price_hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://smartstore.naver.com/*/products/*",
+        "https://brand.naver.com/*/products/*"
+      ],
+      "js": [
+        "ai_option_engine.js",
+        "option_analyzer.js",
+        "capture.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://127.0.0.1:8000/web/*",
+        "http://localhost:8000/web/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "현재 네이버 상품 다시 수집"
+  }
+}

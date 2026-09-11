@@ -1,0 +1,37 @@
+V81 / Chrome Extension 2.61.14
+
+실행방법은 기존과 동일합니다.
+서버 재시작, chrome://extensions 도우미 새로고침(2.61.14), B2B 새로고침.
+
+수정
+1. 품절 표시 옵션은 선택 함수에서 클릭 금지. 수집중 role=option 품절 클릭 이벤트도 차단.
+   품절 정보를 삭제하거나 알림만 숨기는 방식이 아닙니다.
+2. 표준 조합 목록과 실제 그룹 차원이 일치하면 원본 경로를 accumulator에 먼저 등록.
+   제공된 진단 기준 179개 중 블랙 33개 경로 보존.
+3. 미수집 가격은 null, 상태 UNKNOWN. B2B에 가격·품절 확인 필요로 표시.
+   원본 경로 보존은 해당 조합 가격/품절 검증 완료를 뜻하지 않습니다.
+4. DOM에서 확보한 동일 경로의 값으로 기존 항목 갱신, 원본 순서 유지.
+5. standardCombinations 객체에 명시된 추가금액 및 boolean 품절 필드 수집.
+   데이터가 검증된 부모 경로 및 전부 품절인 경로는 탐색 생략.
+   해당 상품이 실제 어떤 가격 필드를 쓰는지는 아직 실사용 미검증.
+6. 이미 표시중인 목록은 aria-expanded 누락만으로 다시 열기/닫기 하지 않음.
+7. 서버 및 UI에서 UNKNOWN/null/verification_status 보존.
+8. 180초 중단, 누적값 전달, ACK 후 임시 탭만 닫기 유지.
+
+검증
+node tests/naver_v79/collector.test.cjs
+node tests/naver_v79/schema.test.cjs
+node tests/naver_v79/preservation.test.cjs
+node tests/naver_v79/background.test.cjs
+python tests/naver_v79/server_test.py
+모의 및 사용자 제공 진단 fixture 회귀 테스트 통과.
+179개/블랙33개 중단시 보존, 품절 클릭0회, 음수 원본가격 및 품절 유지,
+완료된 원본 경로 DOM 탐색 생략, 중복 클릭/DFS/부분저장/ACK/탭 복귀 확인.
+
+실제 네이버 페이지는 이 실행환경에서 접속 불가 화면이므로 실제 속도나
+블랙 가격/품절 전체 검증 완료를 주장하지 않습니다.
+품절 옵션이 남아있되 선택은 일어나지 않는지 확인해주세요.
+가격·품절 확인 필요 표시가 있으면 일반옵션 진단의 metadata_audit를 참고하세요.
+원본 경로 정보가 없는 상품은 기존 DOM 탐색 fallback을 사용합니다.
+원본 이름에 구분자 '_' 자체가 포함되는 등 해석이 모호하면 경로 추론을 적용하지 않습니다.
+기존 상품 영구 저장은 확인/수정 후 저장 단계이며 ACK는 서버 미리보기 저장입니다.
