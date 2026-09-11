@@ -1,3 +1,0 @@
-# 공통 설정값 모음 (나중에 확장)
-DEFAULT_MIN_PROFIT = 500
-DEFAULT_BUFFER_RATE = 0.01
